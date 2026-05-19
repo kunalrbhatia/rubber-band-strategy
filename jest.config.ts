@@ -9,7 +9,7 @@ const config: Config = {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {
-    '^.+\\.tsx?$': [
+    '^.+\\.(t|j)sx?$': [
       'ts-jest',
       {
         useESM: true,
@@ -17,6 +17,10 @@ const config: Config = {
     ],
   },
   setupFiles: ['<rootDir>/__tests__/setup.ts'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(\\.pnpm/|otplib|@otplib|@scure|@noble|date-fns|date-fns-tz|uuid)/)',
+  ],
+
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageThreshold: {

@@ -1,9 +1,31 @@
-import { computeThresholds } from '../../src/helpers/marginCalc';
+import { api } from '../../src/helpers/api';
+import { getUsedMargin, computeThresholds } from '../../src/helpers/marginCalc';
 
-describe('Margin Calc Helpers', () => {
-  it('should compute correct thresholds', () => {
-    const { targetPnl, slPnl } = computeThresholds(50000);
-    expect(targetPnl).toBe(750);
-    expect(slPnl).toBe(-750);
+jest.mock('../../src/helpers/api');
+jest.mock('../../src/helpers/logger');
+
+const mockedApi = api as jest.Mocked<typeof api>;
+
+describe('Margin Calculator Helper', () => {
+  it('should fetch used margin from RMS', async () => {
+    mockedApi.post.mockResolvedValue({
+      status: true,
+      data: { utilisedAmount: '50000.50' }
+    });
+
+    const margin = await getUsedMargin();
+    expect(margin).toBe(50000.50);
+  });
+
+  it('should compute thresholds correctly', () => {
+    const { targetPnl, slPnl } = computeThresholds(100000);
+    // 1.5% of 100000 = 1500
+    expect(targetPnl).toBe(1500);
+    expect(slPnl).toBe(-1500);
+  });
+
+  it('should throw error if API fails', async () => {
+    mockedApi.post.mockResolvedValue({ status: false, message: 'API Error' });
+    await expect(getUsedMargin()).rejects.toThrow('API Error');
   });
 });

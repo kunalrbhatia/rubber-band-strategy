@@ -7,3 +7,12 @@ process.env.CLIENT_TOTP_PIN = 'TESTTOTP';
 process.env.PAPER_TRADING = 'true';
 process.env.TELEGRAM_BOT_TOKEN = 'test_bot';
 process.env.TELEGRAM_CHAT_ID = 'test_chat';
+
+jest.mock('otplib', () => ({
+  generate: jest.fn(),
+  createGuardrails: jest.fn(),
+}));
+
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'mock-uuid'),
+}));

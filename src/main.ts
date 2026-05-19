@@ -7,6 +7,7 @@ import { loadScripMaster } from './helpers/scripMasterCache.js';
 import { connectWebSocket } from './helpers/slMonitor.js';
 import { rsiScannerJob } from './jobs/rsiScanner.js';
 import { eodSquareOffJob } from './jobs/eodSquareOff.js';
+import { marketHealthCheckJob } from './jobs/marketHealthCheck.js';
 import { startServer } from './server.js';
 import { paperStore } from './paper/paperStore.js';
 import { sendNotification } from './notifier.js';
@@ -42,6 +43,15 @@ async function main() {
     startServer(config.port);
 
     // 6. Register cron jobs
+    // Daily Market Health Check: 09:00 AM IST (Mon-Fri)
+    // This includes Scrip Master update, connectivity test, and simulated trade
+    cron.schedule('0 9 * * 1-5', async () => {
+      logger.info('Running daily market health check...');
+      await marketHealthCheckJob();
+    }, {
+      timezone: 'Asia/Kolkata'
+    });
+
     // RSI Scanner: Every 5 mins from 09:20 AM to 03:20 PM IST (Mon-Fri)
     cron.schedule('*/5 9-15 * * 1-5', async () => {
       const now = new Date();
