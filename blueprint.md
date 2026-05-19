@@ -5,14 +5,16 @@
 **RSI Mean Reversion — Options Premium Selling** — A daily intraday options selling strategy on Nifty 50 index.
 Every 5 minutes during market hours, compute the 14-period RSI on the Nifty 50 spot using 5-minute candles.
 
-- When RSI **≤ 20** (oversold): **Sell ATM Put** — market is oversold, expect mean reversion upward, put premiums elevated.
-- When RSI **≥ 80** (overbought): **Sell ATM Call** — market is overbought, expect mean reversion downward, call premiums elevated.
+- When RSI **≤ 20** (oversold): **Sell OTM Put (200 pts below ATM)** — market is oversold, expect mean reversion upward.
+- When RSI **≥ 80** (overbought): **Sell OTM Call (200 pts above ATM)** — market is overbought, expect mean reversion downward.
 
-Target the **current week's nearest expiry**. Each trade is a **credit spread** (not a naked sell):
+**Strike Selection Rule**: All strikes (sell and buy legs) MUST be **multiples of 100** for high liquidity. ATM is calculated by rounding Nifty spot to the nearest 100.
 
-- **Leg 1 — Sell ATM option** (PE for oversold, CE for overbought) — collects premium, uses margin.
-- **Leg 2 — Buy far OTM option** (same type, same expiry, 300–500 points away from ATM) — reduces
-  margin requirement significantly and caps maximum loss. Both legs placed simultaneously as a spread.
+Target the **current week's nearest expiry**. Each trade is a **credit spread**:
+
+- **Leg 1 — Sell OTM option** (PE for oversold, CE for overbought, 200 pts from ATM) — collects premium.
+- **Leg 2 — Buy far OTM option** (same type, same expiry, 400 points away from Sell Strike) — reduces
+  margin requirement and caps loss.
 
 Hold the position until one of these exits fires:
 
@@ -22,7 +24,7 @@ Hold the position until one of these exits fires:
 | **SL hit** | MTM loss ≥ 1.5% of used margin | Exit both legs at market |
 | **EOD** | 3:25 PM IST | Exit both legs at market regardless of P&L |
 
-Only one spread trade is live at a time. No re-entry after SL hit on the same day.
+Only one spread trade is live at a time. While a trade is active, RSI tracking and signal scanning are paused. No re-entry after SL hit on the same day.
 Paper trading mode stores all trades and P&L in a local JSON file.
 
 ---
@@ -816,15 +818,16 @@ STARTUP (09:15 AM):
 
 ENTRY at 11:10 AM:
   Nifty spot        = 24,180
-  ATM strike        = 24,200  (round(24180/50)*50)
-  Hedge strike      = 23,800  (24200 - HEDGE_OFFSET(400))
-  Expiry            = 22MAY2025 (Thursday, before 3:30 PM)
+  ATM strike        = 24,200  (round(24180/100)*100)
+  Sell strike       = 24,000  (24200 - SELL_OFFSET(200))
+  Hedge strike      = 23,600  (24000 - HEDGE_OFFSET(400))
+  Expiry            = 22MAY2025
 
-  Sell leg: NIFTY22MAY202524200PE  LTP = ₹135.40
-  Buy  leg: NIFTY22MAY202523800PE  LTP = ₹28.50
-  Net credit at entry = 135.40 - 28.50 = ₹106.90 per unit
+  Sell leg: NIFTY22MAY202524000PE  LTP = ₹110.40
+  Buy  leg: NIFTY22MAY202523600PE  LTP = ₹22.50
+  Net credit at entry = 110.40 - 22.50 = ₹87.90 per unit
 
-  [PAPER] placeSpread → SELL 24200PE @ ₹135.40 / BUY 23800PE @ ₹28.50
+  [PAPER] placeSpread → SELL 24000PE @ ₹110.40 / BUY 23600PE @ ₹22.50
 
   usedMargin (estimated, paper mode) = ₹46,500
   targetPnl  = +1.5% × 46,500 = +₹697.50
