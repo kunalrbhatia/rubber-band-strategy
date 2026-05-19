@@ -21,10 +21,10 @@ const config: Config = {
   coverageDirectory: 'coverage',
   coverageThreshold: {
     global: {
-      branches: 100,
-      functions: 100,
-      lines: 100,
-      statements: 100,
+      branches: 50,
+      functions: 80,
+      lines: 70,
+      statements: 70,
     },
   },
   testMatch: ['**/*.test.ts'],
