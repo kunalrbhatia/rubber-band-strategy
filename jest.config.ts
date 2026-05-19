@@ -18,7 +18,7 @@ const config: Config = {
   },
   setupFiles: ['<rootDir>/__tests__/setup.ts'],
   transformIgnorePatterns: [
-    'node_modules/(?!(\\.pnpm/|otplib|@otplib|@scure|@noble|date-fns|date-fns-tz)/)',
+    'node_modules/(?!(\\.pnpm/|otplib|@otplib|@scure|@noble|date-fns|date-fns-tz|uuid)/)',
   ],
 
   collectCoverage: true,

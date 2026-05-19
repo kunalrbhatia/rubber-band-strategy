@@ -12,3 +12,7 @@ jest.mock('otplib', () => ({
   generate: jest.fn(),
   createGuardrails: jest.fn(),
 }));
+
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'mock-uuid'),
+}));
