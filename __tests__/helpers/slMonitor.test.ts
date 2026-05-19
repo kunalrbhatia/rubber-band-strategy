@@ -1,4 +1,4 @@
-import { connectWebSocket, subscribe, unsubscribe } from '../../src/helpers/slMonitor';
+import { connectWebSocket, subscribe, unsubscribe, ws } from '../../src/helpers/slMonitor';
 import WebSocket from 'ws';
 import { sessionStore } from '../../src/store/sessionStore';
 import { tradeStore } from '../../src/store/tradeStore';
@@ -30,9 +30,15 @@ describe('SL Monitor Helper', () => {
     MockedWebSocket.mockImplementation(() => mockWs);
   });
 
+  afterEach(() => {
+    unsubscribe();
+  });
+
   it('should connect websocket', async () => {
     mockWs.on.mockImplementation((event: string, cb: any) => {
-      if (event === 'open') setTimeout(cb, 0);
+      if (event === 'open') {
+        cb();
+      }
     });
 
     await connectWebSocket();
@@ -41,7 +47,7 @@ describe('SL Monitor Helper', () => {
 
   it('should subscribe to tokens', async () => {
     mockWs.on.mockImplementation((event: string, cb: any) => {
-      if (event === 'open') setTimeout(cb, 0);
+      if (event === 'open') cb();
     });
     await connectWebSocket();
 
@@ -51,8 +57,8 @@ describe('SL Monitor Helper', () => {
 
   it('should handle target hit', async () => {
     const trade = {
-      sellLeg: { symbolToken: 'S1', currentPremium: 100 },
-      buyLeg: { symbolToken: 'B1', currentPremium: 20 },
+      sellLeg: { symbolToken: 'S1', currentPremium: 100, tradingSymbol: 'S1_SYM' },
+      buyLeg: { symbolToken: 'B1', currentPremium: 20, tradingSymbol: 'B1_SYM' },
       netCreditAtEntry: 80,
       lotSize: 75,
       targetPnl: 500,
@@ -62,21 +68,21 @@ describe('SL Monitor Helper', () => {
 
     let messageCb: any;
     mockWs.on.mockImplementation((event: string, cb: any) => {
-      if (event === 'open') setTimeout(cb, 0);
+      if (event === 'open') cb();
       if (event === 'message') messageCb = cb;
     });
     await connectWebSocket();
 
     if (messageCb) {
-      messageCb(JSON.stringify({ token: 'S1', ltp: '70' })); // Big drop, profit
+      await messageCb(Buffer.from(JSON.stringify({ token: 'S1', ltp: '70' }))); // Big drop, profit
       expect(mockedExitSpread).toHaveBeenCalledWith(expect.anything(), 'TARGET');
     }
   });
 
   it('should handle SL hit', async () => {
     const trade = {
-      sellLeg: { symbolToken: 'S1', currentPremium: 100 },
-      buyLeg: { symbolToken: 'B1', currentPremium: 20 },
+      sellLeg: { symbolToken: 'S1', currentPremium: 100, tradingSymbol: 'S1_SYM' },
+      buyLeg: { symbolToken: 'B1', currentPremium: 20, tradingSymbol: 'B1_SYM' },
       netCreditAtEntry: 80,
       lotSize: 75,
       targetPnl: 500,
@@ -86,13 +92,13 @@ describe('SL Monitor Helper', () => {
 
     let messageCb: any;
     mockWs.on.mockImplementation((event: string, cb: any) => {
-      if (event === 'open') setTimeout(cb, 0);
+      if (event === 'open') cb();
       if (event === 'message') messageCb = cb;
     });
     await connectWebSocket();
 
     if (messageCb) {
-      messageCb(JSON.stringify({ token: 'S1', ltp: '110' })); // Rise, loss
+      await messageCb(Buffer.from(JSON.stringify({ token: 'S1', ltp: '110' }))); // Rise, loss
       expect(mockedExitSpread).toHaveBeenCalledWith(expect.anything(), 'SL_HIT');
     }
   });

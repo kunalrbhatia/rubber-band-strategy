@@ -6,7 +6,7 @@ import { exitSpread } from './orders.js';
 import { logger } from './logger.js';
 import { sendNotification } from '../notifier.js';
 
-let ws: WebSocket | null = null;
+export let ws: WebSocket | null = null;
 let heartbeatInterval: NodeJS.Timeout | null = null;
 let isConnecting = false;
 
