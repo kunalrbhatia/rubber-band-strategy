@@ -23,12 +23,18 @@ export const getNearestExpiry = (): string => {
 };
 
 export const getAtmStrike = (spot: number): number => {
-  return Math.round(spot / 50) * 50;
+  return Math.round(spot / 100) * 100;
 };
 
-export const getFarOtmStrike = (atmStrike: number, optionType: 'CE' | 'PE'): number => {
+export const getSellStrike = (spot: number, optionType: 'CE' | 'PE'): number => {
+  const atm = getAtmStrike(spot);
+  const offset = STRATEGY_CONSTANTS.SELL_OFFSET;
+  return optionType === 'CE' ? atm + offset : atm - offset;
+};
+
+export const getFarOtmStrike = (sellStrike: number, optionType: 'CE' | 'PE'): number => {
   const offset = STRATEGY_CONSTANTS.HEDGE_OFFSET;
-  return optionType === 'CE' ? atmStrike + offset : atmStrike - offset;
+  return optionType === 'CE' ? sellStrike + offset : sellStrike - offset;
 };
 
 export const findOptionToken = (

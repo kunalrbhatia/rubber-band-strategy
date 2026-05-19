@@ -45,6 +45,8 @@ These instructions are foundational for any agent or developer working on the `r
 
 ## 📊 Strategy Specifics
 
-- **Hedge Offset**: Constant `STRATEGY_CONSTANTS.HEDGE_OFFSET` is 400 points.
+- **Hedge Offset**: Constant `STRATEGY_CONSTANTS.HEDGE_OFFSET` is 400 points from the *sold* strike.
+- **Sell Offset**: Constant `STRATEGY_CONSTANTS.SELL_OFFSET` is 200 points from the ATM strike.
+- **Liquidity Mandate**: All strikes (sell and buy legs) MUST be **multiples of 100**. ATM is determined by rounding Nifty spot to the nearest 100.
+- **One Trade Policy**: Only one active spread allowed. While a trade is active, RSI tracking and signal scanning MUST be paused to maintain focus. No re-entry after a Stop Loss hit on the same day.
 - **Margin-Based Exit**: Target and SL are calculated as **1.5%** of the *actual* used margin fetched post-fill.
-- **One Trade Policy**: Only one active spread allowed. No re-entry after a Stop Loss hit on the same day.

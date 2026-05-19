@@ -14,8 +14,10 @@ The "Rubber Band Strategy" is an intraday mean reversion system that sells optio
 ### Signals
 | RSI Level | Condition | Action | Spread Type |
 |---|---|---|---|
-| **≤ 20** | Oversold | **Sell ATM Put** | Bull Put Spread |
-| **≥ 80** | Overbought | **Sell ATM Call** | Bear Call Spread |
+| **≤ 20** | Oversold | **Sell OTM Put (ATM-200)** | Bull Put Spread |
+| **≥ 80** | Overbought | **Sell OTM Call (ATM+200)** | Bear Call Spread |
+
+**Liquidity Rule**: All strikes MUST be **multiples of 100**. ATM is determined by rounding spot to the nearest 100.
 
 ### Exit Conditions
 | Condition | Trigger | Action |
@@ -23,6 +25,8 @@ The "Rubber Band Strategy" is an intraday mean reversion system that sells optio
 | **Target** | MTM Profit ≥ **1.5%** of blocked margin | Close both legs |
 | **Stop Loss** | MTM Loss ≥ **1.5%** of blocked margin | Close both legs |
 | **EOD Cutoff** | **3:25 PM IST** | Hard square-off |
+
+Only one trade is active at a time. While a trade is live, RSI tracking and signal scanning are paused.
 
 ---
 
@@ -32,15 +36,16 @@ The "Rubber Band Strategy" is an intraday mean reversion system that sells optio
 1.  **Signal**: At 11:10 AM, RSI drops to **17.8**.
 2.  **Entry**:
     *   Nifty Spot: 24,180.
-    *   **Leg 1 (Sell)**: ATM PE (24,200) @ ₹135.
-    *   **Leg 2 (Buy)**: OTM PE (23,800) @ ₹28.
-    *   **Net Credit**: ₹107/unit.
+    *   ATM Strike: 24,200 (rounded to nearest 100).
+    *   **Leg 1 (Sell)**: OTM PE (24,000) @ ₹110. (ATM - 200)
+    *   **Leg 2 (Buy)**: OTM PE (23,600) @ ₹22. (Sell Strike - 400)
+    *   **Net Credit**: ₹88/unit.
 3.  **Thresholds**:
     *   Blocked Margin: ₹46,500.
     *   Target (+1.5%): +₹697.50.
     *   SL (-1.5%): -₹697.50.
-4.  **Monitoring**: Real-time MTM tracking via WebSocket ticks.
-5.  **Exit**: At 11:30 AM, spread narrows to ₹93.70. **Profit = ₹990**. Target hit!
+4.  **Monitoring**: Real-time MTM tracking via WebSocket ticks. RSI scanning is paused.
+5.  **Exit**: At 11:30 AM, spread narrows to ₹78.70. **Profit = ₹750**. Target hit!
 
 ---
 

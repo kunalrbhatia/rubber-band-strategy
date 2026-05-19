@@ -4,7 +4,7 @@ import { toZonedTime } from 'date-fns-tz';
 import { tradeStore, ActiveTrade } from '../store/tradeStore.js';
 import { getNiftySpot, getCandles, getLtp } from '../helpers/marketData.js';
 import { calculateRsi } from '../helpers/rsi.js';
-import { getAtmStrike, getFarOtmStrike, getNearestExpiry, findOptionToken } from '../helpers/optionChain.js';
+import { getSellStrike, getFarOtmStrike, getNearestExpiry, findOptionToken } from '../helpers/optionChain.js';
 import { placeSpread } from '../helpers/orders.js';
 import { getUsedMargin, computeThresholds } from '../helpers/marginCalc.js';
 import { subscribe } from '../helpers/slMonitor.js';
@@ -59,11 +59,11 @@ export const rsiScannerJob = async (): Promise<void> => {
 const executeEntry = async (signal: 'OVERSOLD' | 'OVERBOUGHT', rsi: number): Promise<void> => {
   const optionType = signal === 'OVERSOLD' ? 'PE' : 'CE';
   const spot = await getNiftySpot();
-  const atmStrike = getAtmStrike(spot);
-  const hedgeStrike = getFarOtmStrike(atmStrike, optionType);
+  const sellStrike = getSellStrike(spot, optionType);
+  const hedgeStrike = getFarOtmStrike(sellStrike, optionType);
   const expiry = getNearestExpiry();
 
-  const sellLegInfo = findOptionToken(atmStrike, expiry, optionType);
+  const sellLegInfo = findOptionToken(sellStrike, expiry, optionType);
   const buyLegInfo = findOptionToken(hedgeStrike, expiry, optionType);
 
   const sellLtp = await getLtp(sellLegInfo.symbolToken, 'NFO');
@@ -81,7 +81,7 @@ const executeEntry = async (signal: 'OVERSOLD' | 'OVERBOUGHT', rsi: number): Pro
       tradingSymbol: sellLegInfo.tradingSymbol,
       symbolToken: sellLegInfo.symbolToken,
       action: 'SELL',
-      strike: atmStrike,
+      strike: sellStrike,
       entryPremium: sellLtp,
       currentPremium: sellLtp,
     },
