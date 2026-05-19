@@ -23,7 +23,7 @@ describe('Option Chain Helpers', () => {
 
   it('should find option token', () => {
     scripMasterStore.setRecords([{
-      symbol: 'NIFTY22MAY202525300CE',
+      symbol: 'NIFTY22MAY2525300CE',
       token: '123',
       lotsize: '75',
       instrumenttype: 'OPTIDX'
@@ -32,6 +32,16 @@ describe('Option Chain Helpers', () => {
     const result = findOptionToken(25300, '22MAY2025', 'CE');
     expect(result.symbolToken).toBe('123');
     expect(result.lotSize).toBe(75);
+  });
+
+  it('should get nearest expiry from scrip master', () => {
+    scripMasterStore.setRecords([
+      { name: 'NIFTY', expiry: '22MAY2025', instrumenttype: 'OPTIDX' },
+      { name: 'NIFTY', expiry: '29MAY2025', instrumenttype: 'OPTIDX' },
+    ] as any);
+
+    const result = getNearestExpiry();
+    expect(result).toBe('22MAY2025');
   });
 
   it('should throw if option token not found', () => {
