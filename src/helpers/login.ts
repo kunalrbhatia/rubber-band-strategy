@@ -1,4 +1,4 @@
-import { authenticator } from 'otplib';
+import * as otplib from 'otplib';
 import { api } from './api.js';
 import { ANGEL_ONE_URLS } from './constants.js';
 import { config } from '../config/env.js';
@@ -7,7 +7,7 @@ import { logger } from './logger.js';
 
 export const login = async (): Promise<void> => {
   try {
-    const totp = authenticator.generate(config.clientTotpPin);
+    const totp = (otplib as any).authenticator.generate(config.clientTotpPin);
     const response = await api.post<any>(ANGEL_ONE_URLS.LOGIN, {
       clientcode: config.clientCode,
       password: config.clientPin,

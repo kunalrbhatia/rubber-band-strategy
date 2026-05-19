@@ -66,6 +66,9 @@ importers:
       '@types/node-cron':
         specifier: ^3.0.11
         version: 3.0.11
+      '@types/otplib':
+        specifier: ^10.0.0
+        version: 10.0.0
       '@types/uuid':
         specifier: ^11.0.0
         version: 11.0.0
@@ -866,6 +869,10 @@ packages:
 
   '@types/node@25.9.0':
     resolution: {integrity: sha512-AOQwYUNolgy3VosiRqXrACUXTN8nJUtPl7FJXMqZVyxiiCLhQuG3jXKvCS1ALr+Y2OmZhzzLVlYPEqJaiqkaJQ==}
+
+  '@types/otplib@10.0.0':
+    resolution: {integrity: sha512-fxgTy0WQiylowcAuKgCdMW/DcWAz/Qo/GZjY5sLD7/z12RXXjIardQnsZU2iSHWFznVlE+7VstBWZnHUA8aF8Q==}
+    deprecated: This is a stub types definition. otplib provides its own type definitions, so you do not need this installed.
 
   '@types/qs@6.15.1':
     resolution: {integrity: sha512-GZHUBZR9hckSUhrxmp1nG6NwdpM9fCunJwyThLW1X3AyHgd9IlHb6VANpQQqDr2o/qQp6McZ3y/IA2rVzKzSbw==}
@@ -4151,6 +4158,10 @@ snapshots:
   '@types/node@25.9.0':
     dependencies:
       undici-types: 7.24.6
+
+  '@types/otplib@10.0.0':
+    dependencies:
+      otplib: 13.4.0
 
   '@types/qs@6.15.1': {}
 
