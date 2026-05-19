@@ -4,6 +4,7 @@ These instructions are foundational for any agent or developer working on the `r
 
 ## 🏗️ Architecture Mandates
 
+- **Language**: TypeScript (strict, ES modules).
 - **Singleton Stores**: Use the singleton pattern for state management in `src/store/`.
   - `sessionStore`: SmartAPI tokens.
   - `tradeStore`: Active trade state and daily SL flags.
@@ -14,13 +15,27 @@ These instructions are foundational for any agent or developer working on the `r
 
 ## 🛠️ Development Workflow
 
+- **Build and Test**:
+  - Build: `pnpm run build`
+  - Test: `pnpm test`
+  - Lint: `pnpm run lint`
+  - Format: `pnpm run format`
 - **Conventional Commits**: All commits must follow the Conventional Commits specification. Use `pnpm run commit` (Commitizen).
 - **TypeScript & ESM**: Use strict TypeScript and ES Modules. Always include `.js` extensions in local imports (e.g., `import { x } from './y.js'`).
 - **ESLint Flat Config**: Adhere to the `eslint.config.js` rules. We prioritize clean code but allow warnings for unused variables matching the `^_` pattern.
-- **Testing**:
+- **Testing Standards**:
   - Use **Jest** with `ts-jest` in ESM mode.
   - Mock external dependencies (like `axios`) in `__mocks__/`.
-  - Maintain a high coverage baseline (~70% total, 100% for core logic).
+  - 100% test coverage enforced for core logic.
+
+## 💻 Environment & Shell Constraints
+
+- **Operating System**: Windows.
+- **Shell**: PowerShell (Core or Desktop).
+- **Command Syntax**: 
+  - **NEVER** use Linux/Unix-style command chaining with `&&`.
+  - **ALWAYS** use `;` for sequential command execution (e.g., `git add .; git commit -m '...'`).
+  - Use PowerShell-equivalent commands where possible (e.g., `rm` is an alias for `Remove-Item`, but `Set-Content` is preferred over `echo` for file writing).
 
 ## 🔒 Security & Standards
 
