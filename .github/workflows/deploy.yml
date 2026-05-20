@@ -33,6 +33,11 @@ jobs:
             pnpm install --frozen-lockfile
             pnpm build
 
+            # Ensure data directory and files exist
+            mkdir -p data
+            [ -f data/paper-trades.json ] || echo '{"trades": []}' > data/paper-trades.json
+            [ -f data/scrip-master-cache.json ] || echo '{}' > data/scrip-master-cache.json
+
             # Restart with PM2
             pm2 restart ecosystem.config.cjs || pm2 start ecosystem.config.cjs
             pm2 save
