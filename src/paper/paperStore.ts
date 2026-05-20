@@ -76,8 +76,8 @@ class PaperStore {
     try {
       await fs.writeFile(tempFile, JSON.stringify(this.data, null, 2), 'utf-8');
       await fs.rename(tempFile, DATA_FILE);
-    } catch (error) {
-      logger.error('Failed to save paper store');
+    } catch (error: any) {
+      logger.error(`Failed to save paper store: ${error.message}`);
     }
   }
 

@@ -44,8 +44,8 @@ export const loadScripMaster = async (): Promise<ScripRecord[]> => {
   try {
     await fs.writeFile(CACHE_FILE, JSON.stringify(cacheData), 'utf-8');
     logger.info(`Scrip master downloaded + cached (${records.length} records)`);
-  } catch (error) {
-    logger.warn('Failed to write scrip master cache to disk');
+  } catch (error: any) {
+    logger.warn(`Failed to write scrip master cache to disk: ${error.message}`);
   }
 
   scripMasterStore.setRecords(records);
