@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { bot } from './telegramBot.js';
 import { config } from './config/env.js';
 import { logger } from './helpers/logger.js';
 
@@ -8,11 +8,8 @@ export const sendNotification = async (message: string): Promise<void> => {
     return;
   }
 
-  const url = `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`;
   try {
-    await axios.post(url, {
-      chat_id: config.telegramChatId,
-      text: message,
+    await bot.telegram.sendMessage(config.telegramChatId, message, {
       parse_mode: 'HTML',
     });
   } catch (error: any) {

@@ -5,7 +5,14 @@ import { unsubscribe } from '../helpers/slMonitor.js';
 import { logger } from '../helpers/logger.js';
 import { sendNotification } from '../notifier.js';
 
+import { appStateStore } from '../store/appStateStore.js';
+
 export const eodSquareOffJob = async (): Promise<void> => {
+  if (appStateStore.isKillSwitchActive) {
+    logger.info('EOD: Kill switch is active, skipping square-off.');
+    return;
+  }
+
   if (!tradeStore.hasActiveTrade()) {
     logger.info('EOD — No open position today.');
     await sendNotification('💤 EOD — No open position today.');

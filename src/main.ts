@@ -12,9 +12,15 @@ import { startServer } from './server.js';
 import { paperStore } from './paper/paperStore.js';
 import { sendNotification } from './notifier.js';
 
+import { startBot } from './telegramBot.js';
+import { appStateStore } from './store/appStateStore.js';
+
 async function main() {
   try {
-    logger.info(`Starting RSI Algo — Mode: ${config.paperTrading ? 'PAPER' : 'LIVE'}`);
+    // 0. Initialize app state (Kill, Manual, Paper)
+    await appStateStore.init();
+
+    logger.info(`Starting RSI Algo — Mode: ${appStateStore.isPaperTrading ? 'PAPER' : 'LIVE'}`);
 
     // 1. Check if today is a trading day
     const tradingDay = await isTradingDay();
@@ -26,7 +32,7 @@ async function main() {
     }
 
     // 2. Initialize paper store if in paper mode
-    if (config.paperTrading) {
+    if (appStateStore.isPaperTrading) {
       await paperStore.init();
     }
 
@@ -42,7 +48,10 @@ async function main() {
     // 6. Start Express server
     startServer(config.port);
 
-    // 6. Register cron jobs
+    // 7. Start Telegram Bot
+    await startBot();
+
+    // 8. Register cron jobs
     // Daily Market Health Check: 09:00 AM IST (Mon-Fri)
     // This includes Scrip Master update, connectivity test, and simulated trade
     cron.schedule('0 9 * * 1-5', async () => {

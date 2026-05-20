@@ -22,7 +22,13 @@ export const marketHealthLogger = winston.createLogger({
   ],
 });
 
+import { appStateStore } from '../store/appStateStore.js';
+
 export async function marketHealthCheckJob() {
+  if (appStateStore.isKillSwitchActive) {
+    marketHealthLogger.info('--- Skipping Daily Market Health Check (Kill Switch Active) ---');
+    return;
+  }
   marketHealthLogger.info('--- Starting Daily Market Health Check ---');
   await runDiagnostics(marketHealthLogger);
   marketHealthLogger.info('--- Market Health Check Finished ---');
