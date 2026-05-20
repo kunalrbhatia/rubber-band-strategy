@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { format, subMinutes } from 'date-fns';
+import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { tradeStore, ActiveTrade } from '../store/tradeStore.js';
+import { appStateStore } from '../store/appStateStore.js';
 import { getNiftySpot, getCandles, getLtp } from '../helpers/marketData.js';
 import { calculateRsi } from '../helpers/rsi.js';
 import { getSellStrike, getFarOtmStrike, getNearestExpiry, findOptionToken } from '../helpers/optionChain.js';
@@ -14,6 +15,11 @@ import { STRATEGY_CONSTANTS, NIFTY_CONSTANTS, TIME_CONSTANTS } from '../helpers/
 import { config } from '../config/env.js';
 
 export const rsiScannerJob = async (): Promise<void> => {
+  if (appStateStore.isKillSwitchActive) {
+    logger.info('RSI Scanner: Kill switch is active, skipping scan.');
+    return;
+  }
+
   if (tradeStore.hasActiveTrade()) {
     return;
   }
@@ -49,7 +55,23 @@ export const rsiScannerJob = async (): Promise<void> => {
     else if (rsi >= STRATEGY_CONSTANTS.OVERBOUGHT_THRESHOLD) signal = 'OVERBOUGHT';
 
     if (signal !== 'NEUTRAL') {
-      await executeEntry(signal, rsi);
+      if (appStateStore.isManualMode) {
+        const pending = appStateStore.pendingTrade;
+        if (pending && pending.approved && pending.signal === signal) {
+          logger.info(`RSI Scanner: Executing APPROVED manual trade for ${signal}`);
+          await executeEntry(signal, rsi);
+          appStateStore.clearPendingTrade();
+        } else if (!pending || pending.signal !== signal) {
+          logger.info(`RSI Scanner: Signal detected in MANUAL mode. Asking for permission.`);
+          appStateStore.setPendingTrade({ signal, rsi, timestamp: Date.now(), approved: false });
+          await sendNotification(`⚠️ <b>SIGNAL DETECTED [${signal}]</b>\nNifty RSI is ${rsi.toFixed(2)}. Would you like me to take a trade? (Reply <b>Y</b> or <b>Yes</b> to proceed)`);
+        }
+      } else {
+        await executeEntry(signal, rsi);
+      }
+    } else {
+      // Clear pending if neutral to avoid stale approvals
+      appStateStore.clearPendingTrade();
     }
   } catch (error: any) {
     logger.error(`RSI Scanner Job Error: ${error.message}`);
