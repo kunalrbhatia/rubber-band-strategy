@@ -1,22 +1,30 @@
-import { sendNotification } from '../src/notifier';
-import axios from 'axios';
-import { logger } from '../src/helpers/logger';
+import { sendNotification } from '../src/notifier.js';
+import { bot } from '../src/telegramBot.js';
+import { logger } from '../src/helpers/logger.js';
 
-jest.mock('axios');
+jest.mock('../src/telegramBot', () => ({
+  bot: {
+    telegram: {
+      sendMessage: jest.fn(),
+    },
+  },
+}));
 jest.mock('../src/helpers/logger');
 
-const mockedAxios = axios as jest.Mocked<typeof axios>;
-
 describe('Notifier', () => {
-  it('should send notification', async () => {
-    mockedAxios.post.mockResolvedValueOnce({ data: {} });
+  it('should send notification via Telegram bot', async () => {
+    (bot.telegram.sendMessage as jest.Mock).mockResolvedValueOnce({});
     await sendNotification('test message');
-    expect(mockedAxios.post).toHaveBeenCalled();
+    expect(bot.telegram.sendMessage).toHaveBeenCalledWith(
+      expect.any(String),
+      'test message',
+      expect.any(Object)
+    );
   });
 
   it('should log error on failure', async () => {
-    mockedAxios.post.mockRejectedValueOnce(new Error('api error'));
+    (bot.telegram.sendMessage as jest.Mock).mockRejectedValueOnce(new Error('api error'));
     await sendNotification('test message');
-    expect(logger.error).toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('api error'));
   });
 });
