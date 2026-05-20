@@ -33,17 +33,6 @@ jobs:
             pnpm install --frozen-lockfile
             pnpm build
 
-            # Create/Update .env file from secrets
-            echo "PORT=${{ secrets.PORT || 3001 }}" > .env
-            echo "NODE_ENV=production" >> .env
-            echo "API_KEY=${{ secrets.API_KEY }}" >> .env
-            echo "CLIENT_CODE=${{ secrets.CLIENT_CODE }}" >> .env
-            echo "CLIENT_PIN=${{ secrets.CLIENT_PIN }}" >> .env
-            echo "CLIENT_TOTP_PIN=${{ secrets.CLIENT_TOTP_PIN }}" >> .env
-            echo "PAPER_TRADING=${{ secrets.PAPER_TRADING || 'true' }}" >> .env
-            echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
-            echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
-
             # Restart with PM2
             pm2 restart ecosystem.config.cjs || pm2 start ecosystem.config.cjs
             pm2 save
