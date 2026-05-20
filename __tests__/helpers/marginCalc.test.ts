@@ -8,13 +8,14 @@ const mockedApi = api as jest.Mocked<typeof api>;
 
 describe('Margin Calculator Helper', () => {
   it('should fetch used margin from RMS', async () => {
-    mockedApi.post.mockResolvedValue({
+    mockedApi.get.mockResolvedValue({
       status: true,
-      data: { utilisedAmount: '50000.50' }
+      data: { utiliseddebits: '50000.50' }
     });
 
     const margin = await getUsedMargin();
     expect(margin).toBe(50000.50);
+    expect(mockedApi.get).toHaveBeenCalled();
   });
 
   it('should compute thresholds correctly', () => {
@@ -25,7 +26,7 @@ describe('Margin Calculator Helper', () => {
   });
 
   it('should throw error if API fails', async () => {
-    mockedApi.post.mockResolvedValue({ status: false, message: 'API Error' });
+    mockedApi.get.mockResolvedValue({ status: false, message: 'API Error' });
     await expect(getUsedMargin()).rejects.toThrow('API Error');
   });
 });
