@@ -4,8 +4,8 @@ import { logger } from '../helpers/logger.js';
 import { config } from '../config/env.js';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
-const KILL_FILE = path.join(DATA_DIR, '.kill');
-const MANUAL_FILE = path.join(DATA_DIR, '.manual');
+const KILL_FILE = path.join(process.cwd(), '.kill');
+const MANUAL_FILE = path.join(process.cwd(), '.manual');
 const PAPER_FILE = path.join(process.cwd(), '.paper');
 
 class AppStateStore {
