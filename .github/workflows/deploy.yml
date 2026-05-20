@@ -45,5 +45,5 @@ jobs:
             echo "TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
 
             # Restart with PM2
-            pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
+            pm2 restart ecosystem.config.cjs || pm2 start ecosystem.config.cjs
             pm2 save
