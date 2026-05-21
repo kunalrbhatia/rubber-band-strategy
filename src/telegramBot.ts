@@ -108,8 +108,8 @@ bot.command('rsi', async (ctx) => {
   try {
     const now = new Date();
     const nowIST = toZonedTime(now, TIME_CONSTANTS.TIMEZONE);
-    const todayStart = format(nowIST, "yyyy-MM-dd '09:15:00'");
-    const nowStr = format(nowIST, 'yyyy-MM-dd HH:mm:ss');
+    const todayStart = format(nowIST, 'yyyy-MM-dd 09:15');
+    const nowStr = format(nowIST, 'yyyy-MM-dd HH:mm');
 
     const candles = await getCandles(
       NIFTY_CONSTANTS.TOKEN,

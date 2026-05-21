@@ -7,7 +7,8 @@ import { getCandles } from '../src/helpers/marketData.js';
 import { calculateRsi } from '../src/helpers/rsi.js';
 import fs from 'fs/promises';
 
-const mockCommands: Record<string, any> = ((global as any).__mockCommands = (global as any).__mockCommands || {});
+const mockCommands: Record<string, any> = ((global as any).__mockCommands =
+  (global as any).__mockCommands || {});
 const getMockOnHandler = (): any => (global as any).__mockOnHandler;
 const getMockMiddleware = (): any => (global as any).__mockMiddleware;
 
