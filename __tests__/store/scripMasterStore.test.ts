@@ -8,7 +8,7 @@ describe('Scrip Master Store', () => {
   });
 
   it('should find a record', () => {
-    const record = scripMasterStore.findRecord(r => r.symbol === 'A');
+    const record = scripMasterStore.findRecord((r) => r.symbol === 'A');
     expect(record?.token).toBe('1');
   });
 });

@@ -49,7 +49,7 @@ describe('Paper Trader', () => {
 
   it('should place a paper spread', async () => {
     mockedGetLtp.mockResolvedValueOnce(100); // sell
-    mockedGetLtp.mockResolvedValueOnce(20);  // buy
+    mockedGetLtp.mockResolvedValueOnce(20); // buy
     mockedPaperStore.addTrade.mockResolvedValue(undefined);
 
     await paperPlaceSpread(trade);
@@ -60,14 +60,17 @@ describe('Paper Trader', () => {
 
   it('should exit a paper spread', async () => {
     mockedGetLtp.mockResolvedValueOnce(110); // sell exit
-    mockedGetLtp.mockResolvedValueOnce(25);  // buy exit
+    mockedGetLtp.mockResolvedValueOnce(25); // buy exit
     mockedPaperStore.updateTrade.mockResolvedValue(undefined);
 
     await paperExitSpread(trade, 'TARGET');
 
-    expect(mockedPaperStore.updateTrade).toHaveBeenCalledWith('1', expect.objectContaining({
-      exitReason: 'TARGET',
-      pnl: expect.any(Number),
-    }));
+    expect(mockedPaperStore.updateTrade).toHaveBeenCalledWith(
+      '1',
+      expect.objectContaining({
+        exitReason: 'TARGET',
+        pnl: expect.any(Number),
+      }),
+    );
   });
 });

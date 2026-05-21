@@ -10,11 +10,11 @@ describe('Margin Calculator Helper', () => {
   it('should fetch used margin from RMS', async () => {
     mockedApi.get.mockResolvedValue({
       status: true,
-      data: { utiliseddebits: '50000.50' }
+      data: { utiliseddebits: '50000.50' },
     });
 
     const margin = await getUsedMargin();
-    expect(margin).toBe(50000.50);
+    expect(margin).toBe(50000.5);
     expect(mockedApi.get).toHaveBeenCalled();
   });
 

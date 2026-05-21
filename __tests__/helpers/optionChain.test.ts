@@ -1,4 +1,10 @@
-import { getAtmStrike, getSellStrike, getNearestExpiry, getFarOtmStrike, findOptionToken } from '../../src/helpers/optionChain';
+import {
+  getAtmStrike,
+  getSellStrike,
+  getNearestExpiry,
+  getFarOtmStrike,
+  findOptionToken,
+} from '../../src/helpers/optionChain';
 import { scripMasterStore } from '../../src/store/scripMasterStore';
 
 describe('Option Chain Helpers', () => {
@@ -22,13 +28,15 @@ describe('Option Chain Helpers', () => {
   });
 
   it('should find option token', () => {
-    scripMasterStore.setRecords([{
-      symbol: 'NIFTY22MAY2525300CE',
-      token: '123',
-      lotsize: '75',
-      instrumenttype: 'OPTIDX'
-    } as any]);
-    
+    scripMasterStore.setRecords([
+      {
+        symbol: 'NIFTY22MAY2525300CE',
+        token: '123',
+        lotsize: '75',
+        instrumenttype: 'OPTIDX',
+      } as any,
+    ]);
+
     const result = findOptionToken(25300, '22MAY2025', 'CE');
     expect(result.symbolToken).toBe('123');
     expect(result.lotSize).toBe(75);

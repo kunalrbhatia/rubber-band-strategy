@@ -19,7 +19,7 @@ describe('SL Monitor Helper', () => {
     jest.resetModules();
     jest.clearAllMocks();
     sessionStore.setSession({ jwtToken: 't', feedToken: 'f', refreshToken: 'r' });
-    
+
     mockWs = {
       on: jest.fn(),
       send: jest.fn(),

@@ -42,7 +42,10 @@ class PaperStore {
 
   async init(): Promise<void> {
     try {
-      const fileExists = await fs.access(DATA_FILE).then(() => true).catch(() => false);
+      const fileExists = await fs
+        .access(DATA_FILE)
+        .then(() => true)
+        .catch(() => false);
       if (fileExists) {
         const content = await fs.readFile(DATA_FILE, 'utf-8');
         this.data = JSON.parse(content);

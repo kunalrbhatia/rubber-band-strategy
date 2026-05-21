@@ -27,9 +27,9 @@ describe('Trade Store', () => {
       lotSize: 50,
       netCreditAtEntry: 10,
       sellLeg: { currentPremium: 100 },
-      buyLeg: { currentPremium: 85 }
+      buyLeg: { currentPremium: 85 },
     } as any;
-    
+
     tradeStore.setActiveTrade(trade);
     // currentNetCredit = 100 - 85 = 15
     // MTM = (10 - 15) * 50 = -5 * 50 = -250

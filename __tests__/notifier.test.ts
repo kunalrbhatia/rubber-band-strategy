@@ -18,7 +18,7 @@ describe('Notifier', () => {
     expect(bot.telegram.sendMessage).toHaveBeenCalledWith(
       expect.any(String),
       'test message',
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 

@@ -43,7 +43,7 @@ export const getCandles = async (
   exchange: string,
   interval: string,
   fromDate: string,
-  toDate: string
+  toDate: string,
 ): Promise<Candle[]> => {
   const response = await api.post<any>(ANGEL_ONE_URLS.CANDLES, {
     exchange,

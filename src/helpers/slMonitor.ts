@@ -18,7 +18,7 @@ export const connectWebSocket = async (): Promise<void> => {
     const url = 'wss://smartapisocket.angelone.in/smart-stream';
     ws = new WebSocket(url, {
       headers: {
-        'Authorization': `Bearer ${sessionStore.jwtToken}`,
+        Authorization: `Bearer ${sessionStore.jwtToken}`,
         'x-api-key': config.apiKey,
         'x-client-code': config.clientCode,
         'x-feed-token': sessionStore.feedToken,
@@ -28,7 +28,7 @@ export const connectWebSocket = async (): Promise<void> => {
     ws.on('open', () => {
       logger.info('WebSocket connected for SL monitoring');
       isConnecting = false;
-      
+
       heartbeatInterval = setInterval(() => {
         ws?.ping();
       }, 30000);
@@ -107,16 +107,21 @@ const updateMtm = (token: string, ltp: number): void => {
   }
 };
 
-const triggerExit = async (trade: ActiveTrade, reason: 'TARGET' | 'SL_HIT', mtm: number): Promise<void> => {
+const triggerExit = async (
+  trade: ActiveTrade,
+  reason: 'TARGET' | 'SL_HIT',
+  mtm: number,
+): Promise<void> => {
   unsubscribe();
   try {
     const exitCredit = trade.sellLeg.currentPremium - trade.buyLeg.currentPremium;
     await exitSpread(trade, reason);
-    
-    const message = reason === 'TARGET' 
-      ? `🎯 TARGET HIT — ${trade.sellLeg.tradingSymbol} spread | P&L: +₹${mtm.toFixed(2)} | Exit net credit: ₹${exitCredit.toFixed(2)}`
-      : `🛑 SL HIT — ${trade.sellLeg.tradingSymbol} spread | P&L: -₹${Math.abs(mtm).toFixed(2)} | Exit net credit: ₹${exitCredit.toFixed(2)}`;
-    
+
+    const message =
+      reason === 'TARGET'
+        ? `🎯 TARGET HIT — ${trade.sellLeg.tradingSymbol} spread | P&L: +₹${mtm.toFixed(2)} | Exit net credit: ₹${exitCredit.toFixed(2)}`
+        : `🛑 SL HIT — ${trade.sellLeg.tradingSymbol} spread | P&L: -₹${Math.abs(mtm).toFixed(2)} | Exit net credit: ₹${exitCredit.toFixed(2)}`;
+
     await sendNotification(message);
     if (reason === 'SL_HIT') {
       tradeStore.setDailySLHit(true);
