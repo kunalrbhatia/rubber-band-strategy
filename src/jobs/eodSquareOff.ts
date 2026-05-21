@@ -37,13 +37,15 @@ export const eodSquareOffJob = async (): Promise<void> => {
     const emoji = pnl >= 0 ? '✅' : '❌';
     const status = pnl >= 0 ? 'profit' : 'loss';
     const message = `${emoji} EOD EXIT — ${trade.sellLeg.tradingSymbol} spread | P&L: ${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)}`;
-    
+
     await sendNotification(message);
     logger.info(`EOD Square-off completed with ${status}: ₹${pnl.toFixed(2)}`);
-    
+
     tradeStore.clearActiveTrade();
   } catch (error: any) {
     logger.error(`EOD Square-off failed: ${error.message}`);
-    await sendNotification(`⚠️ EOD EXIT FAILED — ${trade.sellLeg.tradingSymbol} — ${error.message}`);
+    await sendNotification(
+      `⚠️ EOD EXIT FAILED — ${trade.sellLeg.tradingSymbol} — ${error.message}`,
+    );
   }
 };

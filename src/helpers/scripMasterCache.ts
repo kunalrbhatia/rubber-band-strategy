@@ -18,7 +18,10 @@ export const loadScripMaster = async (): Promise<ScripRecord[]> => {
   const today = format(toZonedTime(new Date(), TIME_CONSTANTS.TIMEZONE), 'yyyy-MM-dd');
 
   try {
-    const fileExists = await fs.access(CACHE_FILE).then(() => true).catch(() => false);
+    const fileExists = await fs
+      .access(CACHE_FILE)
+      .then(() => true)
+      .catch(() => false);
 
     if (fileExists) {
       const content = await fs.readFile(CACHE_FILE, 'utf-8');

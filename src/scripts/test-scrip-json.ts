@@ -7,7 +7,7 @@ async function testScripJson() {
     logger.info('--- Starting Scrip Master JSON Test ---');
 
     const records = await downloadScripMaster();
-    
+
     logger.info(`Total NFO Records: ${records.length}`);
 
     if (records.length === 0) {
@@ -20,7 +20,16 @@ async function testScripJson() {
     console.log(JSON.stringify(sample, null, 2));
 
     // Validate essential fields
-    const requiredFields = ['token', 'symbol', 'name', 'expiry', 'strike', 'lotsize', 'instrumenttype', 'exch_seg'];
+    const requiredFields = [
+      'token',
+      'symbol',
+      'name',
+      'expiry',
+      'strike',
+      'lotsize',
+      'instrumenttype',
+      'exch_seg',
+    ];
     for (const field of requiredFields) {
       if (!(field in sample)) {
         logger.error(`Missing required field: ${field}`);
@@ -28,19 +37,21 @@ async function testScripJson() {
     }
 
     // Check for NIFTY records
-    const niftyRecords = records.filter(r => r.name === 'NIFTY');
+    const niftyRecords = records.filter((r) => r.name === 'NIFTY');
     logger.info(`NIFTY Records found: ${niftyRecords.length}`);
 
     if (niftyRecords.length === 0) {
-      logger.warn('Warning: No NIFTY records found. This might be an issue if you plan to trade Nifty.');
+      logger.warn(
+        'Warning: No NIFTY records found. This might be an issue if you plan to trade Nifty.',
+      );
     } else {
-        const optionRecords = niftyRecords.filter(r => r.instrumenttype === 'OPTIDX');
-        logger.info(`NIFTY Option Records (OPTIDX): ${optionRecords.length}`);
-        
-        if (optionRecords.length > 0) {
-            logger.info('Sample NIFTY Option:');
-            console.log(JSON.stringify(optionRecords[0], null, 2));
-        }
+      const optionRecords = niftyRecords.filter((r) => r.instrumenttype === 'OPTIDX');
+      logger.info(`NIFTY Option Records (OPTIDX): ${optionRecords.length}`);
+
+      if (optionRecords.length > 0) {
+        logger.info('Sample NIFTY Option:');
+        console.log(JSON.stringify(optionRecords[0], null, 2));
+      }
     }
 
     logger.info('--- Scrip Master JSON Test Completed ---');

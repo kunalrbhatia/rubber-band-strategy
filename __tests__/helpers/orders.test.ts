@@ -42,20 +42,30 @@ describe('Orders Helper', () => {
     await placeSpread(mockTrade);
 
     expect(mockedApi.post).toHaveBeenCalledTimes(2);
-    expect(mockedApi.post).toHaveBeenNthCalledWith(1, expect.any(String), expect.objectContaining({
-      transactiontype: 'SELL',
-      symboltoken: 'S1'
-    }));
-    expect(mockedApi.post).toHaveBeenNthCalledWith(2, expect.any(String), expect.objectContaining({
-      transactiontype: 'BUY',
-      symboltoken: 'B1'
-    }));
+    expect(mockedApi.post).toHaveBeenNthCalledWith(
+      1,
+      expect.any(String),
+      expect.objectContaining({
+        transactiontype: 'SELL',
+        symboltoken: 'S1',
+      }),
+    );
+    expect(mockedApi.post).toHaveBeenNthCalledWith(
+      2,
+      expect.any(String),
+      expect.objectContaining({
+        transactiontype: 'BUY',
+        symboltoken: 'B1',
+      }),
+    );
   });
 
   it('should throw error if first leg fails in live mode', async () => {
     config.paperTrading = false;
     mockedApi.post.mockResolvedValueOnce({ status: false, message: 'Insufficient funds' });
 
-    await expect(placeSpread(mockTrade)).rejects.toThrow('Sell leg order failed: Insufficient funds');
+    await expect(placeSpread(mockTrade)).rejects.toThrow(
+      'Sell leg order failed: Insufficient funds',
+    );
   });
 });

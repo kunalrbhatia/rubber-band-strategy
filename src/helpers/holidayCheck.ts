@@ -19,7 +19,7 @@ export const isTradingDay = async (): Promise<boolean> => {
     // or search for one. The blueprint says "NSE holiday API check".
     // I'll use a placeholder for now but structure it for an API call.
     const todayStr = format(zonedNow, 'yyyy-MM-dd');
-    
+
     // Example NSE holiday list (partial for 2024/2025/2026)
     const holidays = [
       '2026-01-26', // Republic Day

@@ -5,7 +5,8 @@ export const ANGEL_ONE_URLS = {
   QUOTE: '/rest/secure/angelbroking/market/v1/quote',
   RMS: '/rest/secure/angelbroking/user/v1/getRMS',
   PLACE_ORDER: '/rest/secure/angelbroking/order/v1/placeOrder',
-  SCRIP_MASTER: 'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json',
+  SCRIP_MASTER:
+    'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json',
 };
 
 export const NIFTY_CONSTANTS = {

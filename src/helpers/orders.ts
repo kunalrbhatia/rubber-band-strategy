@@ -45,11 +45,15 @@ export const placeSpread = async (trade: ActiveTrade): Promise<void> => {
 
     if (order2.status !== true) {
       logger.error(`CRITICAL: Sell leg placed but buy leg failed: ${order2.message}`);
-      await sendNotification(`⚠️ CRITICAL: Spread entry partial fill! ${trade.buyLeg.tradingSymbol} failed.`);
+      await sendNotification(
+        `⚠️ CRITICAL: Spread entry partial fill! ${trade.buyLeg.tradingSymbol} failed.`,
+      );
       // In a real app, you might want to retry order2 or exit order1 immediately
     }
 
-    logger.info(`Live spread entry successful: ${trade.sellLeg.tradingSymbol} / ${trade.buyLeg.tradingSymbol}`);
+    logger.info(
+      `Live spread entry successful: ${trade.sellLeg.tradingSymbol} / ${trade.buyLeg.tradingSymbol}`,
+    );
   } catch (error: any) {
     logger.error(`Live spread entry failed: ${error.message}`);
     throw error;
@@ -58,7 +62,7 @@ export const placeSpread = async (trade: ActiveTrade): Promise<void> => {
 
 export const exitSpread = async (
   trade: ActiveTrade,
-  reason: 'TARGET' | 'SL_HIT' | 'EOD'
+  reason: 'TARGET' | 'SL_HIT' | 'EOD',
 ): Promise<void> => {
   if (config.paperTrading) {
     await paperExitSpread(trade, reason);

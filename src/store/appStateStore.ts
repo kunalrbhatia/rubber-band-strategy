@@ -17,12 +17,21 @@ class AppStateStore {
   async init(): Promise<void> {
     try {
       await fs.mkdir(DATA_DIR, { recursive: true });
-      
-      this._isKillSwitchActive = await fs.access(KILL_FILE).then(() => true).catch(() => false);
-      this._isManualMode = await fs.access(MANUAL_FILE).then(() => true).catch(() => false);
-      
+
+      this._isKillSwitchActive = await fs
+        .access(KILL_FILE)
+        .then(() => true)
+        .catch(() => false);
+      this._isManualMode = await fs
+        .access(MANUAL_FILE)
+        .then(() => true)
+        .catch(() => false);
+
       // For paper trading, respect the .paper file if it exists, otherwise default to env
-      const paperFileExists = await fs.access(PAPER_FILE).then(() => true).catch(() => false);
+      const paperFileExists = await fs
+        .access(PAPER_FILE)
+        .then(() => true)
+        .catch(() => false);
       if (paperFileExists) {
         this._isPaperTrading = true;
       } else if (config.paperTrading === false) {
@@ -34,16 +43,26 @@ class AppStateStore {
         await fs.writeFile(PAPER_FILE, '', 'utf-8');
       }
 
-      logger.info(`App state initialized: Kill=${this._isKillSwitchActive}, Manual=${this._isManualMode}, Paper=${this._isPaperTrading}`);
+      logger.info(
+        `App state initialized: Kill=${this._isKillSwitchActive}, Manual=${this._isManualMode}, Paper=${this._isPaperTrading}`,
+      );
     } catch (error: any) {
       logger.error(`Failed to initialize AppStateStore: ${error.message}`);
     }
   }
 
-  get isKillSwitchActive(): boolean { return this._isKillSwitchActive; }
-  get isManualMode(): boolean { return this._isManualMode; }
-  get isPaperTrading(): boolean { return this._isPaperTrading; }
-  get pendingTrade(): any { return this._pendingTrade; }
+  get isKillSwitchActive(): boolean {
+    return this._isKillSwitchActive;
+  }
+  get isManualMode(): boolean {
+    return this._isManualMode;
+  }
+  get isPaperTrading(): boolean {
+    return this._isPaperTrading;
+  }
+  get pendingTrade(): any {
+    return this._pendingTrade;
+  }
 
   async setKillSwitch(active: boolean): Promise<void> {
     this._isKillSwitchActive = active;

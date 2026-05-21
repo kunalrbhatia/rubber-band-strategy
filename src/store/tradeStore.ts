@@ -47,7 +47,8 @@ class TradeStore {
 
   getMtm(): number {
     if (!this._activeTrade) return 0;
-    const currentNetCredit = this._activeTrade.sellLeg.currentPremium - this._activeTrade.buyLeg.currentPremium;
+    const currentNetCredit =
+      this._activeTrade.sellLeg.currentPremium - this._activeTrade.buyLeg.currentPremium;
     return (this._activeTrade.netCreditAtEntry - currentNetCredit) * this._activeTrade.lotSize;
   }
 

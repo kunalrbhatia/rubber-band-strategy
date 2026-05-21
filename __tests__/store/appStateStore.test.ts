@@ -11,7 +11,7 @@ describe('AppStateStore', () => {
     (appStateStore as any)._isKillSwitchActive = false;
     (appStateStore as any)._isManualMode = false;
     (appStateStore as any)._isPaperTrading = true;
-    
+
     mockedFs.writeFile.mockResolvedValue(undefined);
     mockedFs.unlink.mockResolvedValue(undefined);
     mockedFs.mkdir.mockResolvedValue(undefined);
@@ -20,9 +20,9 @@ describe('AppStateStore', () => {
   it('should initialize states from files', async () => {
     mockedFs.access.mockResolvedValue(undefined); // File exists
     mockedFs.readFile.mockResolvedValue('{}');
-    
+
     await appStateStore.init();
-    
+
     expect(appStateStore.isKillSwitchActive).toBe(true);
     expect(appStateStore.isManualMode).toBe(true);
     expect(appStateStore.isPaperTrading).toBe(true);
@@ -31,9 +31,9 @@ describe('AppStateStore', () => {
   it('should handle missing files during init', async () => {
     mockedFs.access.mockRejectedValue(new Error('not found'));
     config.paperTrading = false;
-    
+
     await appStateStore.init();
-    
+
     expect(appStateStore.isKillSwitchActive).toBe(false);
     expect(appStateStore.isManualMode).toBe(false);
     expect(appStateStore.isPaperTrading).toBe(false);
@@ -54,7 +54,11 @@ describe('AppStateStore', () => {
   it('should set manual mode and create file', async () => {
     await appStateStore.setManualMode(true);
     expect(appStateStore.isManualMode).toBe(true);
-    expect(mockedFs.writeFile).toHaveBeenCalledWith(expect.stringContaining('.manual'), '', 'utf-8');
+    expect(mockedFs.writeFile).toHaveBeenCalledWith(
+      expect.stringContaining('.manual'),
+      '',
+      'utf-8',
+    );
   });
 
   it('should toggle paper trading and update config', async () => {
@@ -68,7 +72,7 @@ describe('AppStateStore', () => {
     const trade = { signal: 'OVERSOLD', rsi: 20 };
     appStateStore.setPendingTrade(trade);
     expect(appStateStore.pendingTrade).toEqual(trade);
-    
+
     appStateStore.clearPendingTrade();
     expect(appStateStore.pendingTrade).toBeNull();
   });

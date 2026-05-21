@@ -54,45 +54,60 @@ async function main() {
     // 8. Register cron jobs
     // Daily Market Health Check: 09:00 AM IST (Mon-Fri)
     // This includes Scrip Master update, connectivity test, and simulated trade
-    cron.schedule('0 9 * * 1-5', async () => {
-      logger.info('Running daily market health check...');
-      await marketHealthCheckJob();
-    }, {
-      timezone: 'Asia/Kolkata'
-    });
+    cron.schedule(
+      '0 9 * * 1-5',
+      async () => {
+        logger.info('Running daily market health check...');
+        await marketHealthCheckJob();
+      },
+      {
+        timezone: 'Asia/Kolkata',
+      },
+    );
 
     // RSI Scanner: Every 5 mins from 09:20 AM to 03:20 PM IST (Mon-Fri)
-    cron.schedule('*/5 9-15 * * 1-5', async () => {
-      const now = new Date();
-      const hour = now.getHours();
-      const minute = now.getMinutes();
+    cron.schedule(
+      '*/5 9-15 * * 1-5',
+      async () => {
+        const now = new Date();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
 
-      // IST 09:20 to 15:20
-      // Note: Node.js server time should be IST or we need to adjust cron.
-      // Assuming server runs in IST or we adjust. Blueprint says 'every 5 mins from 09:20 AM to 03:20 PM IST'
-      // We can use the 'timezone' option in node-cron if supported, or check manually.
-      // node-cron v3+ supports timezone.
-      
-      // For simplicity in this implementation, we'll check the time inside the job or use the cron expression carefully.
-      // '*/5 9-15 * * 1-5' covers 09:00 to 15:55.
-      if ((hour === 9 && minute >= 20) || (hour > 9 && hour < 15) || (hour === 15 && minute <= 20)) {
-        await rsiScannerJob();
-      }
-    }, {
-      timezone: 'Asia/Kolkata'
-    });
+        // IST 09:20 to 15:20
+        // Note: Node.js server time should be IST or we need to adjust cron.
+        // Assuming server runs in IST or we adjust. Blueprint says 'every 5 mins from 09:20 AM to 03:20 PM IST'
+        // We can use the 'timezone' option in node-cron if supported, or check manually.
+        // node-cron v3+ supports timezone.
+
+        // For simplicity in this implementation, we'll check the time inside the job or use the cron expression carefully.
+        // '*/5 9-15 * * 1-5' covers 09:00 to 15:55.
+        if (
+          (hour === 9 && minute >= 20) ||
+          (hour > 9 && hour < 15) ||
+          (hour === 15 && minute <= 20)
+        ) {
+          await rsiScannerJob();
+        }
+      },
+      {
+        timezone: 'Asia/Kolkata',
+      },
+    );
 
     // EOD Square-off: 3:25 PM IST (Mon-Fri)
-    cron.schedule('25 15 * * 1-5', async () => {
-      await eodSquareOffJob();
-    }, {
-      timezone: 'Asia/Kolkata'
-    });
+    cron.schedule(
+      '25 15 * * 1-5',
+      async () => {
+        await eodSquareOffJob();
+      },
+      {
+        timezone: 'Asia/Kolkata',
+      },
+    );
 
     const startMsg = `✅ RSI Algo started — Paper: ${config.paperTrading} — ${new Date().toLocaleDateString()}`;
     await sendNotification(startMsg);
     logger.info('Algo initialized and jobs scheduled');
-
   } catch (error: any) {
     logger.error(`Startup Error: ${error.message}`);
     await sendNotification(`⚠️ RSI Algo Startup ERROR — ${error.message}`);

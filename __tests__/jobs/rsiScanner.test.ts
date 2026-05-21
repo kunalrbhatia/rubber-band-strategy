@@ -43,10 +43,12 @@ describe('RSI Scanner Job', () => {
 
     await rsiScannerJob();
 
-    expect(appStateStore.setPendingTrade).toHaveBeenCalledWith(expect.objectContaining({
-      signal: 'OVERSOLD',
-      approved: false
-    }));
+    expect(appStateStore.setPendingTrade).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signal: 'OVERSOLD',
+        approved: false,
+      }),
+    );
     expect(sendNotification).toHaveBeenCalledWith(expect.stringContaining('SIGNAL DETECTED'));
   });
 
@@ -61,7 +63,7 @@ describe('RSI Scanner Job', () => {
     (findOptionToken as jest.Mock).mockReturnValue({
       tradingSymbol: 'NIFTY_TEST',
       symbolToken: '123',
-      lotSize: 50
+      lotSize: 50,
     });
 
     await rsiScannerJob();

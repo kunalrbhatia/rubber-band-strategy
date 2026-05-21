@@ -8,7 +8,13 @@ import { calculateRsi } from '../helpers/rsi.js';
 import { isTradingDay } from '../helpers/holidayCheck.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { getNearestExpiry, getAtmStrike, getSellStrike, getFarOtmStrike, findOptionToken } from '../helpers/optionChain.js';
+import {
+  getNearestExpiry,
+  getAtmStrike,
+  getSellStrike,
+  getFarOtmStrike,
+  findOptionToken,
+} from '../helpers/optionChain.js';
 import { connectWebSocket, subscribe, unsubscribe } from '../helpers/slMonitor.js';
 import { tradeStore, ActiveTrade } from '../store/tradeStore.js';
 import { paperStore } from '../paper/paperStore.js';
@@ -35,31 +41,36 @@ export async function runDiagnostics(customLogger?: any) {
     // 2. Scrip Master & Freshness
     l.info('--- 2. Loading Scrip Master & Freshness Check ---');
     const CACHE_FILE = path.join(process.cwd(), 'data', 'scrip-master-cache.json');
-    
+
     // Explicit Verification: Check if loadScripMaster logic handles daily updates
     l.info('Verifying logic: loadScripMaster handles daily updates by date comparison.');
     await loadScripMaster();
-    
+
     try {
-        const content = await fs.readFile(CACHE_FILE, 'utf-8');
-        const cache = JSON.parse(content);
-        const today = format(new Date(), 'yyyy-MM-dd');
-        if (cache.cachedDate === today) {
-            l.info(`SUCCESS: Scrip Master is UP TO DATE (Date: ${cache.cachedDate})`);
-        } else {
-            l.warn(`WARNING: Scrip Master cache date (${cache.cachedDate}) does not match today (${today})`);
-        }
+      const content = await fs.readFile(CACHE_FILE, 'utf-8');
+      const cache = JSON.parse(content);
+      const today = format(new Date(), 'yyyy-MM-dd');
+      if (cache.cachedDate === today) {
+        l.info(`SUCCESS: Scrip Master is UP TO DATE (Date: ${cache.cachedDate})`);
+      } else {
+        l.warn(
+          `WARNING: Scrip Master cache date (${cache.cachedDate}) does not match today (${today})`,
+        );
+      }
     } catch (e) {
-        l.error('Could not verify Scrip Master file on disk.');
+      l.error('Could not verify Scrip Master file on disk.');
     }
 
     // Explicit Verification: Verify Cron Scheduling (Structural Check)
     l.info('Verifying scheduling: main.ts contains cron job for 09:00 AM IST update.');
     const mainContent = await fs.readFile(path.join(process.cwd(), 'src', 'main.ts'), 'utf-8');
-    if (mainContent.includes("cron.schedule('0 9 * * 1-5'") || mainContent.includes("09:00 AM IST")) {
-        l.info('SUCCESS: 9:00 AM daily scrip update job is scheduled in main.ts');
+    if (
+      mainContent.includes("cron.schedule('0 9 * * 1-5'") ||
+      mainContent.includes('09:00 AM IST')
+    ) {
+      l.info('SUCCESS: 9:00 AM daily scrip update job is scheduled in main.ts');
     } else {
-        l.error('FAILURE: 9:00 AM daily scrip update job NOT found in main.ts');
+      l.error('FAILURE: 9:00 AM daily scrip update job NOT found in main.ts');
     }
 
     // 3. RSI Calculation (Market Related)
@@ -68,17 +79,17 @@ export async function runDiagnostics(customLogger?: any) {
     l.info(`Current Nifty Spot: ${spot}`);
 
     const now = new Date();
-    const fromDate = format(new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), "yyyy-MM-dd HH:mm"); // 48h ago to ensure enough candles
-    const toDate = format(now, "yyyy-MM-dd HH:mm");
-    
+    const fromDate = format(new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd HH:mm'); // 48h ago to ensure enough candles
+    const toDate = format(now, 'yyyy-MM-dd HH:mm');
+
     const candles = await getCandles('99926000', 'NSE', 'FIVE_MINUTE', fromDate, toDate);
     l.info(`Fetched ${candles.length} candles for Nifty.`);
-    
+
     const rsi = calculateRsi(candles);
     if (rsi === null) {
-        l.warn('WARNING: RSI calculation returned null (insufficient data).');
+      l.warn('WARNING: RSI calculation returned null (insufficient data).');
     } else {
-        l.info(`Current RSI-14: ${rsi.toFixed(2)}`);
+      l.info(`Current RSI-14: ${rsi.toFixed(2)}`);
     }
 
     // 4. Strike Selection
@@ -89,23 +100,23 @@ export async function runDiagnostics(customLogger?: any) {
     l.info(`ATM Strike: ${atm}`);
 
     try {
-        const realMargin = await getUsedMargin();
-        l.info(`Real RMS Margin: ₹${realMargin}`);
+      const realMargin = await getUsedMargin();
+      l.info(`Real RMS Margin: ₹${realMargin}`);
     } catch (e: any) {
-        l.warn(`Could not fetch RMS margin: ${e.message}`);
+      l.warn(`Could not fetch RMS margin: ${e.message}`);
     }
 
-    const optionType = (rsi && rsi >= 80) ? 'CE' : 'PE'; 
+    const optionType = rsi && rsi >= 80 ? 'CE' : 'PE';
     const sellStrike = getSellStrike(spot, optionType);
     const hedgeStrike = getFarOtmStrike(sellStrike, optionType);
-    
+
     l.info(`Selected Strategy: ${optionType} Spread`);
     l.info(`Sell Strike: ${sellStrike}`);
     l.info(`Hedge Strike: ${hedgeStrike}`);
 
     const sellLeg = findOptionToken(sellStrike, expiry, optionType);
     const buyLeg = findOptionToken(hedgeStrike, expiry, optionType);
-    
+
     l.info(`Sell Leg: ${sellLeg.tradingSymbol} (Token: ${sellLeg.symbolToken})`);
     l.info(`Buy Leg: ${buyLeg.tradingSymbol} (Token: ${buyLeg.symbolToken})`);
 
@@ -117,12 +128,12 @@ export async function runDiagnostics(customLogger?: any) {
     l.info('--- 5. Testing Order Placement ---');
     const isLive = process.argv.includes('--live');
     if (isLive) {
-        l.info('!!! LIVE MODE DETECTED !!!');
-        config.paperTrading = false;
+      l.info('!!! LIVE MODE DETECTED !!!');
+      config.paperTrading = false;
     } else {
-        l.info('Running in PAPER mode (default). Use --live for real trades.');
-        config.paperTrading = true;
-        await paperStore.init();
+      l.info('Running in PAPER mode (default). Use --live for real trades.');
+      config.paperTrading = true;
+      await paperStore.init();
     }
 
     const tradeId = uuidv4();
@@ -133,7 +144,7 @@ export async function runDiagnostics(customLogger?: any) {
       optionType,
       expiry,
       lotSize: sellLeg.lotSize,
-      quantity: sellLeg.lotSize, 
+      quantity: sellLeg.lotSize,
       sellLeg: {
         tradingSymbol: sellLeg.tradingSymbol,
         symbolToken: sellLeg.symbolToken,
@@ -153,7 +164,7 @@ export async function runDiagnostics(customLogger?: any) {
       netCreditAtEntry: sellLtp - buyLtp,
       usedMargin: STRATEGY_CONSTANTS.PAPER_MARGIN_ESTIMATE, // Mock or real margin
       targetPnl: 1000, // Tight target for testing
-      slPnl: -500,    // Tight SL for testing
+      slPnl: -500, // Tight SL for testing
       rsiAtEntry: rsi || 0,
       mode: config.paperTrading ? 'PAPER' : 'LIVE',
     };
@@ -170,40 +181,47 @@ export async function runDiagnostics(customLogger?: any) {
 
     // Monitor for a bit
     for (let i = 0; i < 4; i++) {
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        const activeTrade = tradeStore.activeTrade;
-        if (activeTrade) {
-            const currentNetCredit = activeTrade.sellLeg.currentPremium - activeTrade.buyLeg.currentPremium;
-            const mtm = (activeTrade.netCreditAtEntry - currentNetCredit) * activeTrade.lotSize;
-            l.info(`Update ${i+1}: MTM: ₹${mtm.toFixed(2)} (Sell LTP: ${activeTrade.sellLeg.currentPremium}, Buy LTP: ${activeTrade.buyLeg.currentPremium})`);
-            
-            // Artificial SL trigger for testing if market is closed
-            if (i === 2 && !isLive) {
-                l.info('Simulating SL hit for diagnostic purposes...');
-                tradeStore.activeTrade!.sellLeg.currentPremium += 20; // Increase sell premium to cause loss
-            }
-        } else {
-            l.info('Trade closed by Monitor (Target/SL reached).');
-            break;
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      const activeTrade = tradeStore.activeTrade;
+      if (activeTrade) {
+        const currentNetCredit =
+          activeTrade.sellLeg.currentPremium - activeTrade.buyLeg.currentPremium;
+        const mtm = (activeTrade.netCreditAtEntry - currentNetCredit) * activeTrade.lotSize;
+        l.info(
+          `Update ${i + 1}: MTM: ₹${mtm.toFixed(2)} (Sell LTP: ${activeTrade.sellLeg.currentPremium}, Buy LTP: ${activeTrade.buyLeg.currentPremium})`,
+        );
+
+        // Artificial SL trigger for testing if market is closed
+        if (i === 2 && !isLive) {
+          l.info('Simulating SL hit for diagnostic purposes...');
+          tradeStore.activeTrade!.sellLeg.currentPremium += 20; // Increase sell premium to cause loss
         }
+      } else {
+        l.info('Trade closed by Monitor (Target/SL reached).');
+        break;
+      }
     }
 
     // Cleanup
     if (tradeStore.activeTrade) {
-        l.info('Manually exiting trade...');
-        await exitSpread(tradeStore.activeTrade, 'EOD');
-        tradeStore.clearActiveTrade();
+      l.info('Manually exiting trade...');
+      await exitSpread(tradeStore.activeTrade, 'EOD');
+      tradeStore.clearActiveTrade();
     }
 
     unsubscribe();
     l.info('=== MARKET DIAGNOSTICS COMPLETED ===');
-
   } catch (error: any) {
     l.error(`DIAGNOSTICS FAILED: ${error.message}`);
   }
 }
 
-if (process.argv[1] && (process.argv[1] === path.join(process.cwd(), 'src', 'scripts', 'market-diagnostics.ts') || 
-    process.argv[1].endsWith('market-diagnostics.ts'))) {
-    runDiagnostics().then(() => process.exit(0)).catch(() => process.exit(1));
+if (
+  process.argv[1] &&
+  (process.argv[1] === path.join(process.cwd(), 'src', 'scripts', 'market-diagnostics.ts') ||
+    process.argv[1].endsWith('market-diagnostics.ts'))
+) {
+  runDiagnostics()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
 }

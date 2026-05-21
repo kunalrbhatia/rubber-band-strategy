@@ -8,7 +8,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import { TIME_CONSTANTS } from './helpers/constants.js';
+import { TIME_CONSTANTS, STRATEGY_CONSTANTS, NIFTY_CONSTANTS } from './helpers/constants.js';
+import { getCandles } from './helpers/marketData.js';
+import { calculateRsi } from './helpers/rsi.js';
 
 if (!config.telegramBotToken) {
   logger.warn('TELEGRAM_BOT_TOKEN not found, bot features will be disabled.');
@@ -36,7 +38,9 @@ bot.command('kill', async (ctx) => {
 bot.command('manual', async (ctx) => {
   const active = !appStateStore.isManualMode;
   await appStateStore.setManualMode(active);
-  ctx.reply(`🛠️ Manual Mode ${active ? 'ENABLED. Confirmation required for trades.' : 'DISABLED. Auto-trading active.'}`);
+  ctx.reply(
+    `🛠️ Manual Mode ${active ? 'ENABLED. Confirmation required for trades.' : 'DISABLED. Auto-trading active.'}`,
+  );
 });
 
 // /paper command
@@ -57,15 +61,17 @@ bot.command('status', async (ctx) => {
     `Daily SL Hit: ${tradeStore.dailySLHit ? '🛑 YES' : '✅ NO'}`,
     '',
     '💼 <b>Active Position</b>',
-    activeTrade ? [
-      `Symbol: ${activeTrade.underlying}`,
-      `Type: ${activeTrade.optionType} Spread`,
-      `Entry: ₹${activeTrade.netCreditAtEntry.toFixed(2)}`,
-      `Current MTM: ₹${tradeStore.getMtm().toFixed(2)}`,
-      `Target/SL: +₹${activeTrade.targetPnl.toFixed(2)} / -₹${Math.abs(activeTrade.slPnl).toFixed(2)}`
-    ].join('\n') : 'None',
+    activeTrade
+      ? [
+          `Symbol: ${activeTrade.underlying}`,
+          `Type: ${activeTrade.optionType} Spread`,
+          `Entry: ₹${activeTrade.netCreditAtEntry.toFixed(2)}`,
+          `Current MTM: ₹${tradeStore.getMtm().toFixed(2)}`,
+          `Target/SL: +₹${activeTrade.targetPnl.toFixed(2)} / -₹${Math.abs(activeTrade.slPnl).toFixed(2)}`,
+        ].join('\n')
+      : 'None',
   ].join('\n');
-  
+
   ctx.replyWithHTML(status);
 });
 
@@ -84,13 +90,45 @@ bot.command('update', async (ctx) => {
 bot.command('logs', async (ctx) => {
   const today = format(toZonedTime(new Date(), TIME_CONSTANTS.TIMEZONE), 'yyyy-MM-dd');
   const logFile = path.join(process.cwd(), 'logs', `rsi-${today}.log`);
-  
+
   try {
     const content = await fs.readFile(logFile, 'utf-8');
-    const lines = content.split('\n').filter(l => l.trim()).slice(-10);
+    const lines = content
+      .split('\n')
+      .filter((l) => l.trim())
+      .slice(-10);
     ctx.replyWithHTML(`📋 <b>Last 10 Logs:</b>\n<pre>${lines.join('\n')}</pre>`);
   } catch (error) {
     ctx.reply('❌ Could not read log file.');
+  }
+});
+
+// /rsi command
+bot.command('rsi', async (ctx) => {
+  try {
+    const now = new Date();
+    const nowIST = toZonedTime(now, TIME_CONSTANTS.TIMEZONE);
+    const todayStart = format(nowIST, "yyyy-MM-dd '09:15:00'");
+    const nowStr = format(nowIST, 'yyyy-MM-dd HH:mm:ss');
+
+    const candles = await getCandles(
+      NIFTY_CONSTANTS.TOKEN,
+      NIFTY_CONSTANTS.EXCHANGE,
+      'FIVE_MINUTE',
+      todayStart,
+      nowStr,
+    );
+
+    const rsi = calculateRsi(candles, STRATEGY_CONSTANTS.RSI_LENGTH);
+    if (rsi === null) {
+      await ctx.reply(`📉 Nifty RSI: Insufficient data (${candles.length}/28 candles).`);
+      return;
+    }
+
+    await ctx.replyWithHTML(`📊 <b>Current Nifty RSI:</b> ${rsi.toFixed(2)}`);
+  } catch (error: any) {
+    logger.error(`Error in /rsi command: ${error.message}`);
+    await ctx.reply(`❌ Failed to fetch RSI: ${error.message}`);
   }
 });
 
@@ -111,10 +149,10 @@ bot.on('text', async (ctx) => {
 
 export const startBot = async () => {
   if (!config.telegramBotToken) return;
-  
+
   bot.launch();
   logger.info('Telegram Bot listener started');
-  
+
   // Enable graceful stop
   process.once('SIGINT', () => bot.stop('SIGINT'));
   process.once('SIGTERM', () => bot.stop('SIGTERM'));

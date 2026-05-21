@@ -63,7 +63,7 @@ describe('Paper Store', () => {
   it('should update a trade', async () => {
     await paperStore.updateTrade('1', { status: 'CLOSED', pnl: 500 });
     const trades = paperStore.getAllTrades();
-    const trade = trades.find(t => t.id === '1');
+    const trade = trades.find((t) => t.id === '1');
     expect(trade?.status).toBe('CLOSED');
     expect(trade?.pnl).toBe(500);
   });

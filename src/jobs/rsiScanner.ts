@@ -5,7 +5,12 @@ import { tradeStore, ActiveTrade } from '../store/tradeStore.js';
 import { appStateStore } from '../store/appStateStore.js';
 import { getNiftySpot, getCandles, getLtp } from '../helpers/marketData.js';
 import { calculateRsi } from '../helpers/rsi.js';
-import { getSellStrike, getFarOtmStrike, getNearestExpiry, findOptionToken } from '../helpers/optionChain.js';
+import {
+  getSellStrike,
+  getFarOtmStrike,
+  getNearestExpiry,
+  findOptionToken,
+} from '../helpers/optionChain.js';
 import { placeSpread } from '../helpers/orders.js';
 import { getUsedMargin, computeThresholds } from '../helpers/marginCalc.js';
 import { subscribe } from '../helpers/slMonitor.js';
@@ -39,7 +44,7 @@ export const rsiScannerJob = async (): Promise<void> => {
       NIFTY_CONSTANTS.EXCHANGE,
       'FIVE_MINUTE',
       todayStart,
-      nowStr
+      nowStr,
     );
 
     const rsi = calculateRsi(candles, STRATEGY_CONSTANTS.RSI_LENGTH);
@@ -64,7 +69,9 @@ export const rsiScannerJob = async (): Promise<void> => {
         } else if (!pending || pending.signal !== signal) {
           logger.info(`RSI Scanner: Signal detected in MANUAL mode. Asking for permission.`);
           appStateStore.setPendingTrade({ signal, rsi, timestamp: Date.now(), approved: false });
-          await sendNotification(`⚠️ <b>SIGNAL DETECTED [${signal}]</b>\nNifty RSI is ${rsi.toFixed(2)}. Would you like me to take a trade? (Reply <b>Y</b> or <b>Yes</b> to proceed)`);
+          await sendNotification(
+            `⚠️ <b>SIGNAL DETECTED [${signal}]</b>\nNifty RSI is ${rsi.toFixed(2)}. Would you like me to take a trade? (Reply <b>Y</b> or <b>Yes</b> to proceed)`,
+          );
         }
       } else {
         await executeEntry(signal, rsi);
@@ -137,6 +144,6 @@ const executeEntry = async (signal: 'OVERSOLD' | 'OVERBOUGHT', rsi: number): Pro
 
   const emoji = optionType === 'PE' ? '📉' : '📈';
   const msg = `${emoji} SPREAD ENTRY [${optionType}] — Sell ${trade.sellLeg.tradingSymbol} @ ₹${sellLtp.toFixed(2)} / Buy ${trade.buyLeg.tradingSymbol} @ ₹${buyLtp.toFixed(2)} | Net credit: ₹${trade.netCreditAtEntry.toFixed(2)} | RSI: ${rsi.toFixed(2)} | Margin: ₹${trade.usedMargin} | Target: +₹${trade.targetPnl.toFixed(2)} | SL: -₹${Math.abs(trade.slPnl).toFixed(2)}`;
-  
+
   await sendNotification(msg);
 };

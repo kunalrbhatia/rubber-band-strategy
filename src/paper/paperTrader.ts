@@ -54,12 +54,14 @@ export const paperPlaceSpread = async (trade: ActiveTrade): Promise<void> => {
   };
 
   await paperStore.addTrade(paperRecord);
-  logger.info(`[PAPER] SPREAD SELL ${trade.sellLeg.tradingSymbol} / BUY ${trade.buyLeg.tradingSymbol} | Net credit: ₹${trade.netCreditAtEntry.toFixed(2)}`);
+  logger.info(
+    `[PAPER] SPREAD SELL ${trade.sellLeg.tradingSymbol} / BUY ${trade.buyLeg.tradingSymbol} | Net credit: ₹${trade.netCreditAtEntry.toFixed(2)}`,
+  );
 };
 
 export const paperExitSpread = async (
   trade: ActiveTrade,
-  reason: 'TARGET' | 'SL_HIT' | 'EOD'
+  reason: 'TARGET' | 'SL_HIT' | 'EOD',
 ): Promise<void> => {
   const sellExitLtp = await getLtp(trade.sellLeg.symbolToken, 'NFO');
   const buyExitLtp = await getLtp(trade.buyLeg.symbolToken, 'NFO');

@@ -18,8 +18,8 @@ describe('Login Helper', () => {
       data: {
         jwtToken: 'jwt',
         refreshToken: 'refresh',
-        feedToken: 'feed'
-      }
+        feedToken: 'feed',
+      },
     });
 
     await login();
