@@ -108,14 +108,15 @@ bot.command('rsi', async (ctx) => {
   try {
     const now = new Date();
     const nowIST = toZonedTime(now, TIME_CONSTANTS.TIMEZONE);
-    const todayStart = format(nowIST, 'yyyy-MM-dd 09:15');
+    // Go back 5 days to handle weekends/holidays and ensure enough historical candles
+    const fromDate = format(new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd 09:15');
     const nowStr = format(nowIST, 'yyyy-MM-dd HH:mm');
 
     const candles = await getCandles(
       NIFTY_CONSTANTS.TOKEN,
       NIFTY_CONSTANTS.EXCHANGE,
       'FIVE_MINUTE',
-      todayStart,
+      fromDate,
       nowStr,
     );
 

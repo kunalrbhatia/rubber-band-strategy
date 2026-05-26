@@ -45,7 +45,11 @@ export const connectWebSocket = async (): Promise<void> => {
     });
 
     ws.on('error', (error) => {
-      logger.error(`WebSocket error: ${error.message}`);
+      if (error.message?.includes('401')) {
+        logger.warn('WebSocket connection unauthorized (expired or missing session token).');
+      } else {
+        logger.error(`WebSocket error: ${error.message}`);
+      }
       isConnecting = false;
       reject(error);
     });
@@ -55,8 +59,8 @@ export const connectWebSocket = async (): Promise<void> => {
       if (heartbeatInterval) clearInterval(heartbeatInterval);
       ws = null;
       isConnecting = false;
-      // Attempt reconnect if needed
-      setTimeout(connectWebSocket, 5000);
+      // Attempt reconnect if needed and catch any promise rejections
+      setTimeout(() => connectWebSocket().catch(() => {}), 5000);
     });
   });
 };
