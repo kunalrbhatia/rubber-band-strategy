@@ -7,6 +7,7 @@ module.exports = {
       exec_mode: 'fork',
       node_args: '--max-old-space-size=512',
       autorestart: true,
+      stop_exit_codes: [0],
       exp_backoff_restart_delay: 100,
       watch: false,
       max_memory_restart: '768M',
