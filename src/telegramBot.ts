@@ -11,6 +11,8 @@ import { toZonedTime } from 'date-fns-tz';
 import { TIME_CONSTANTS, STRATEGY_CONSTANTS, NIFTY_CONSTANTS } from './helpers/constants.js';
 import { getCandles } from './helpers/marketData.js';
 import { calculateRsi } from './helpers/rsi.js';
+import { login } from './helpers/login.js';
+import { sessionStore } from './store/sessionStore.js';
 
 if (!config.telegramBotToken) {
   logger.warn('TELEGRAM_BOT_TOKEN not found, bot features will be disabled.');
@@ -106,6 +108,11 @@ bot.command('logs', async (ctx) => {
 // /rsi command
 bot.command('rsi', async (ctx) => {
   try {
+    if (!sessionStore.jwtToken) {
+      logger.info('Telegram Bot /rsi: No active session found. Initiating login...');
+      await login();
+    }
+
     const now = new Date();
     const nowIST = toZonedTime(now, TIME_CONSTANTS.TIMEZONE);
     // Go back 5 days to handle weekends/holidays and ensure enough historical candles

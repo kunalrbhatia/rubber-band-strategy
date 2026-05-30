@@ -56,6 +56,16 @@ jest.mock('../src/helpers/rsi.js', () => ({
   calculateRsi: jest.fn(),
 }));
 
+jest.mock('../src/helpers/login.js', () => ({
+  login: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../src/store/sessionStore.js', () => ({
+  sessionStore: {
+    jwtToken: 'mock_jwt_token',
+  },
+}));
+
 jest.mock('fs/promises', () => ({
   default: {
     readFile: jest.fn(),
