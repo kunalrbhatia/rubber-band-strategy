@@ -69,8 +69,12 @@ jest.mock('../src/store/sessionStore.js', () => ({
 jest.mock('fs/promises', () => ({
   default: {
     readFile: jest.fn(),
+    readdir: jest.fn(),
+    access: jest.fn(),
   },
   readFile: jest.fn(),
+  readdir: jest.fn(),
+  access: jest.fn(),
 }));
 
 jest.mock('telegraf', () => {
@@ -234,16 +238,31 @@ describe('Telegram Bot Commands', () => {
   });
 
   describe('/logs command', () => {
-    it('should return last 10 logs', async () => {
+    it('should return last 10 logs from today if file exists', async () => {
+      (fs.access as jest.Mock).mockResolvedValue(undefined);
       (fs.readFile as jest.Mock).mockResolvedValue('log1\nlog2\n');
       await mockCommands.logs(mockCtx);
       expect(mockCtx.replyWithHTML).toHaveBeenCalledWith(expect.stringContaining('log1\nlog2'));
     });
 
-    it('should handle log read error', async () => {
-      (fs.readFile as jest.Mock).mockRejectedValue(new Error('File not found'));
+    it('should fallback to most recent log if today file is missing', async () => {
+      (fs.access as jest.Mock).mockRejectedValue(new Error('no access'));
+      (fs.readdir as jest.Mock).mockResolvedValue(['rsi-2026-05-30.log', 'other.log']);
+      (fs.readFile as jest.Mock).mockResolvedValue('oldlog1\noldlog2\n');
       await mockCommands.logs(mockCtx);
-      expect(mockCtx.reply).toHaveBeenCalledWith('❌ Could not read log file.');
+      expect(mockCtx.replyWithHTML).toHaveBeenCalledWith(expect.stringContaining('oldlog1\noldlog2'));
+      expect(mockCtx.replyWithHTML).toHaveBeenCalledWith(
+        expect.stringContaining('(rsi-2026-05-30.log)'),
+      );
+    });
+
+    it('should handle log read error', async () => {
+      (fs.access as jest.Mock).mockResolvedValue(undefined);
+      (fs.readFile as jest.Mock).mockRejectedValue(new Error('Read error'));
+      await mockCommands.logs(mockCtx);
+      expect(mockCtx.reply).toHaveBeenCalledWith(
+        expect.stringContaining('❌ Could not read log file: Read error'),
+      );
     });
   });
 

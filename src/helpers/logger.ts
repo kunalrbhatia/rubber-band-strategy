@@ -1,4 +1,5 @@
 import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { TIME_CONSTANTS } from './constants.js';
@@ -18,8 +19,12 @@ export const logger = winston.createLogger({
     new winston.transports.Console({
       format: combine(colorize(), logFormat),
     }),
-    new winston.transports.File({
-      filename: `logs/rsi-${format(new Date(), 'yyyy-MM-dd')}.log`,
+    new DailyRotateFile({
+      filename: 'logs/rsi-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: '20m',
+      maxFiles: '14d',
     }),
   ],
 });
