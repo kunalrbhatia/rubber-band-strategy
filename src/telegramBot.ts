@@ -91,17 +91,44 @@ bot.command('update', async (ctx) => {
 // /logs command
 bot.command('logs', async (ctx) => {
   const today = format(toZonedTime(new Date(), TIME_CONSTANTS.TIMEZONE), 'yyyy-MM-dd');
-  const logFile = path.join(process.cwd(), 'logs', `rsi-${today}.log`);
+  const logsDir = path.join(process.cwd(), 'logs');
+  let logFile = path.join(logsDir, `rsi-${today}.log`);
 
   try {
+    // Try today's log first
+    try {
+      await fs.access(logFile);
+    } catch {
+      // Fallback: find the most recent rsi-*.log file
+      const files = await fs.readdir(logsDir);
+      const logFiles = files
+        .filter((f) => f.startsWith('rsi-') && f.endsWith('.log'))
+        .sort()
+        .reverse();
+
+      if (logFiles.length > 0) {
+        logFile = path.join(logsDir, logFiles[0]);
+      } else {
+        throw new Error('No log files found.');
+      }
+    }
+
     const content = await fs.readFile(logFile, 'utf-8');
     const lines = content
       .split('\n')
       .filter((l) => l.trim())
       .slice(-10);
-    ctx.replyWithHTML(`📋 <b>Last 10 Logs:</b>\n<pre>${lines.join('\n')}</pre>`);
-  } catch (error) {
-    ctx.reply('❌ Could not read log file.');
+
+    if (lines.length === 0) {
+      return ctx.reply(`📋 Log file found (${path.basename(logFile)}), but it is empty.`);
+    }
+
+    ctx.replyWithHTML(
+      `📋 <b>Last 10 Logs (${path.basename(logFile)}):</b>\n<pre>${lines.join('\n')}</pre>`,
+    );
+  } catch (error: any) {
+    logger.error(`Error reading logs: ${error.message}`);
+    ctx.reply(`❌ Could not read log file: ${error.message}`);
   }
 });
 
