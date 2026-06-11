@@ -250,7 +250,9 @@ describe('Telegram Bot Commands', () => {
       (fs.readdir as jest.Mock).mockResolvedValue(['rsi-2026-05-30.log', 'other.log']);
       (fs.readFile as jest.Mock).mockResolvedValue('oldlog1\noldlog2\n');
       await mockCommands.logs(mockCtx);
-      expect(mockCtx.replyWithHTML).toHaveBeenCalledWith(expect.stringContaining('oldlog1\noldlog2'));
+      expect(mockCtx.replyWithHTML).toHaveBeenCalledWith(
+        expect.stringContaining('oldlog1\noldlog2'),
+      );
       expect(mockCtx.replyWithHTML).toHaveBeenCalledWith(
         expect.stringContaining('(rsi-2026-05-30.log)'),
       );

@@ -74,7 +74,13 @@ describe('SL Monitor Helper', () => {
     await connectWebSocket();
 
     if (messageCb) {
-      await messageCb(Buffer.from(JSON.stringify({ token: 'S1', ltp: '70' }))); // Big drop, profit
+      // Mock binary packet: Mode 1 (1 byte) + padding (1 byte) + token (25 bytes) + ... + LTP (4 bytes at offset 43)
+      const buffer = Buffer.alloc(47);
+      buffer.writeInt8(1, 0); // Mode 1
+      buffer.write('S1', 2); // Token
+      buffer.writeInt32LE(70 * 100, 43); // LTP in paise (7000)
+
+      await messageCb(buffer);
       expect(mockedExitSpread).toHaveBeenCalledWith(expect.anything(), 'TARGET');
     }
   });
@@ -98,7 +104,13 @@ describe('SL Monitor Helper', () => {
     await connectWebSocket();
 
     if (messageCb) {
-      await messageCb(Buffer.from(JSON.stringify({ token: 'S1', ltp: '110' }))); // Rise, loss
+      // Mock binary packet: Mode 1 (1 byte) + padding (1 byte) + token (25 bytes) + ... + LTP (4 bytes at offset 43)
+      const buffer = Buffer.alloc(47);
+      buffer.writeInt8(1, 0); // Mode 1
+      buffer.write('S1', 2); // Token
+      buffer.writeInt32LE(110 * 100, 43); // LTP in paise (11000)
+
+      await messageCb(buffer);
       expect(mockedExitSpread).toHaveBeenCalledWith(expect.anything(), 'SL_HIT');
     }
   });

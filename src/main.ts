@@ -65,7 +65,8 @@ async function main() {
     // 3. Check if today is a trading day
     const tradingDay = await isTradingDay();
     if (!tradingDay) {
-      const msg = '🚫 RSI Algo — Today is NSE holiday or weekend. Trading services will not be initialized.';
+      const msg =
+        '🚫 RSI Algo — Today is NSE holiday or weekend. Trading services will not be initialized.';
       logger.info(msg);
       await sendNotification(msg);
     } else {
@@ -177,4 +178,3 @@ async function main() {
 }
 
 main();
-
