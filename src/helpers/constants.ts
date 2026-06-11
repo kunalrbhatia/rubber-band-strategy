@@ -24,6 +24,7 @@ export const STRATEGY_CONSTANTS = {
   TARGET_PERCENT: 0.015,
   SL_PERCENT: 0.015,
   PAPER_MARGIN_ESTIMATE: 45000,
+  API_SAFETY_DELAY: 15000, // 15 seconds to ensure candle aggregation
 };
 
 export const TIME_CONSTANTS = {

@@ -5,6 +5,7 @@ import { getNiftySpot, getCandles, getLtp } from '../../src/helpers/marketData.j
 import { calculateRsi } from '../../src/helpers/rsi.js';
 import { findOptionToken } from '../../src/helpers/optionChain.js';
 import { sendNotification } from '../../src/notifier.js';
+import { STRATEGY_CONSTANTS } from '../../src/helpers/constants.js';
 
 jest.mock('../../src/helpers/marketData.js');
 jest.mock('../../src/helpers/rsi.js');
@@ -51,7 +52,7 @@ describe('RSI Scanner Job', () => {
     (calculateRsi as jest.Mock).mockReturnValue(15); // Oversold
 
     const promise = rsiScannerJob();
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(STRATEGY_CONSTANTS.API_SAFETY_DELAY);
     await promise;
 
     expect(appStateStore.setPendingTrade).toHaveBeenCalledWith(
@@ -78,7 +79,7 @@ describe('RSI Scanner Job', () => {
     });
 
     const promise = rsiScannerJob();
-    jest.advanceTimersByTime(5000);
+    jest.advanceTimersByTime(STRATEGY_CONSTANTS.API_SAFETY_DELAY);
     await promise;
 
     expect(sendNotification).toHaveBeenCalledWith(expect.stringContaining('SPREAD ENTRY'));
