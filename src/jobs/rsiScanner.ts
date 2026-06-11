@@ -33,6 +33,10 @@ export const rsiScannerJob = async (): Promise<void> => {
     return;
   }
 
+  // Small delay (5s) to ensure candle is formed on broker's server
+  // Prevents transient 403 errors at the exact start of the interval
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
   try {
     const now = new Date();
     const nowIST = toZonedTime(now, TIME_CONSTANTS.TIMEZONE);

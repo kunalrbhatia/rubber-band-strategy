@@ -38,6 +38,7 @@ async function requestWithRetry<T>(
     return response.data;
   } catch (error: any) {
     const status = error.response?.status;
+    const responseData = error.response?.data;
     const isRetriable = status === 403 || status >= 500;
     if (retries > 0 && isRetriable) {
       logger.warn(
@@ -46,7 +47,8 @@ async function requestWithRetry<T>(
       await wait(delay);
       return requestWithRetry<T>(method, url, fn, retries - 1, delay * 1.5);
     }
-    logger.error(`API ${method} Error: ${url} - ${error.message}`);
+    const errorMsg = responseData ? JSON.stringify(responseData) : error.message;
+    logger.error(`API ${method} Error: ${url} - Status ${status} - ${errorMsg}`);
     throw error;
   }
 }

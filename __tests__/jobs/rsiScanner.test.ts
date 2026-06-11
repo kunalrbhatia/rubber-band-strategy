@@ -19,18 +19,27 @@ jest.mock('../../src/store/appStateStore.js');
 describe('RSI Scanner Job', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('should skip if kill switch is active', async () => {
     (appStateStore as any).isKillSwitchActive = true;
-    await rsiScannerJob();
+    const promise = rsiScannerJob();
+    jest.runAllTimers();
+    await promise;
     expect(getCandles).not.toHaveBeenCalled();
   });
 
   it('should skip if active trade exists', async () => {
     (appStateStore as any).isKillSwitchActive = false;
     (tradeStore.hasActiveTrade as jest.Mock).mockReturnValue(true);
-    await rsiScannerJob();
+    const promise = rsiScannerJob();
+    jest.runAllTimers();
+    await promise;
     expect(getCandles).not.toHaveBeenCalled();
   });
 
@@ -41,7 +50,9 @@ describe('RSI Scanner Job', () => {
     (getCandles as jest.Mock).mockResolvedValue([{}]);
     (calculateRsi as jest.Mock).mockReturnValue(15); // Oversold
 
-    await rsiScannerJob();
+    const promise = rsiScannerJob();
+    jest.advanceTimersByTime(5000);
+    await promise;
 
     expect(appStateStore.setPendingTrade).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -66,7 +77,9 @@ describe('RSI Scanner Job', () => {
       lotSize: 50,
     });
 
-    await rsiScannerJob();
+    const promise = rsiScannerJob();
+    jest.advanceTimersByTime(5000);
+    await promise;
 
     expect(sendNotification).toHaveBeenCalledWith(expect.stringContaining('SPREAD ENTRY'));
     expect(tradeStore.setActiveTrade).toHaveBeenCalled();
