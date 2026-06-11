@@ -33,16 +33,18 @@ export const rsiScannerJob = async (): Promise<void> => {
     return;
   }
 
-  // Small delay (5s) to ensure candle is formed on broker's server
+  // Delay to ensure candle is formed on broker's server
   // Prevents transient 403 errors at the exact start of the interval
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, STRATEGY_CONSTANTS.API_SAFETY_DELAY));
 
   try {
     const now = new Date();
     const nowIST = toZonedTime(now, TIME_CONSTANTS.TIMEZONE);
     // Go back 5 days to handle weekends/holidays and ensure enough historical candles
     const fromDate = format(new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd 09:15');
-    const nowStr = format(nowIST, 'yyyy-MM-dd HH:mm');
+    // Offset by 1 minute to ensure the current interval's candle is closed and ready
+    const toDate = new Date(nowIST.getTime() - 60000);
+    const nowStr = format(toDate, 'yyyy-MM-dd HH:mm');
 
     const candles = await getCandles(
       NIFTY_CONSTANTS.TOKEN,
