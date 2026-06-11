@@ -35,13 +35,31 @@ export const connectWebSocket = async (): Promise<void> => {
       resolve();
     });
 
-    ws.on('message', (data) => {
+    ws.on('message', (data: Buffer) => {
       try {
-        const msg = JSON.parse(data.toString());
-        if (msg.ltp) {
-          updateMtm(msg.token, parseFloat(msg.ltp));
+        // Smart Stream V2 sends binary data
+        if (Buffer.isBuffer(data)) {
+          const mode = data.readInt8(0);
+          // Mode 1 is LTP
+          if (mode === 1) {
+            const token = data.toString('utf8', 2, 27).replace(/\0/g, '').trim();
+            const ltpPaise = data.readInt32LE(43);
+            const ltp = ltpPaise / 100;
+
+            if (token) {
+              updateMtm(token, ltp);
+            }
+          }
+        } else {
+          // Fallback for any JSON messages (like errors or heartbeats if any)
+          const msg = JSON.parse((data as any).toString());
+          if (msg.ltp) {
+            updateMtm(msg.token, parseFloat(msg.ltp));
+          }
         }
-      } catch (e) {}
+      } catch (e: any) {
+        logger.debug(`WebSocket message parse error: ${e.message}`);
+      }
     });
 
     ws.on('error', (error) => {
@@ -91,6 +109,9 @@ export const unsubscribe = (): void => {
   }
 };
 
+let lastTickLogTime = 0;
+let tickCount = 0;
+
 const updateMtm = (token: string, ltp: number): void => {
   const trade = tradeStore.activeTrade;
   if (!trade) return;
@@ -99,6 +120,19 @@ const updateMtm = (token: string, ltp: number): void => {
     trade.sellLeg.currentPremium = ltp;
   } else if (token === trade.buyLeg.symbolToken) {
     trade.buyLeg.currentPremium = ltp;
+  }
+
+  tickCount++;
+  const now = Date.now();
+  // Log status every 1 minute or every 1000 ticks, whichever comes first
+  if (now - lastTickLogTime > 60000 || tickCount >= 1000) {
+    const currentNetCredit = trade.sellLeg.currentPremium - trade.buyLeg.currentPremium;
+    const spreadMtm = (trade.netCreditAtEntry - currentNetCredit) * trade.lotSize;
+    logger.info(
+      `[WS MONITOR] Active — Ticks: ${tickCount} | MTM: ₹${spreadMtm.toFixed(2)} | Net Credit: ₹${currentNetCredit.toFixed(2)}`,
+    );
+    lastTickLogTime = now;
+    tickCount = 0;
   }
 
   const currentNetCredit = trade.sellLeg.currentPremium - trade.buyLeg.currentPremium;
