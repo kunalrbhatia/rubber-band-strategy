@@ -14,6 +14,7 @@ import { sendNotification } from './notifier.js';
 
 import { startBot } from './telegramBot.js';
 import { appStateStore } from './store/appStateStore.js';
+import { tradeStore } from './store/tradeStore.js';
 
 let isInitializedForToday = false;
 let currentInitializedDateStr = '';
@@ -26,6 +27,12 @@ async function initializeTradingServices() {
   }
 
   logger.info('Initializing daily trading services...');
+
+  // 0. Reset stores for the new day
+  tradeStore.reset();
+  if (appStateStore.isPaperTrading) {
+    await paperStore.clear();
+  }
 
   // 1. Initialize paper store if in paper mode
   if (appStateStore.isPaperTrading) {

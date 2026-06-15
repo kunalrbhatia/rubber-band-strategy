@@ -39,4 +39,12 @@ describe('Trade Store', () => {
   it('should return 0 MTM if no active trade', () => {
     expect(tradeStore.getMtm()).toBe(0);
   });
+
+  it('should reset both active trade and SL hit flag', () => {
+    tradeStore.setActiveTrade({ id: '1' } as any);
+    tradeStore.setDailySLHit(true);
+    tradeStore.reset();
+    expect(tradeStore.activeTrade).toBeNull();
+    expect(tradeStore.dailySLHit).toBe(false);
+  });
 });

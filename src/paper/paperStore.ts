@@ -74,6 +74,12 @@ class PaperStore {
     return this.data.trades;
   }
 
+  async clear(): Promise<void> {
+    this.data = { trades: [] };
+    await this.save();
+    logger.info('Paper store trades cleared for the new day');
+  }
+
   private async save(): Promise<void> {
     const tempFile = `${DATA_FILE}.tmp`;
     try {
