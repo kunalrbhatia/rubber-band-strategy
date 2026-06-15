@@ -59,6 +59,11 @@ class TradeStore {
   setDailySLHit(value: boolean): void {
     this._dailySLHit = value;
   }
+
+  reset(): void {
+    this._activeTrade = null;
+    this._dailySLHit = false;
+  }
 }
 
 export const tradeStore = new TradeStore();

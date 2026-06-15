@@ -73,4 +73,12 @@ describe('Paper Store', () => {
     expect(summary.totalTrades).toBe(1);
     expect(summary.totalPnl).toBe(500);
   });
+
+  it('should clear all trades', async () => {
+    mockedFs.writeFile.mockResolvedValue(undefined);
+    mockedFs.rename.mockResolvedValue(undefined);
+    await paperStore.clear();
+    expect(paperStore.getAllTrades()).toHaveLength(0);
+    expect(mockedFs.writeFile).toHaveBeenCalled();
+  });
 });
