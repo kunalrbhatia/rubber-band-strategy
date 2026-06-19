@@ -12,6 +12,7 @@ export interface Config {
   paperTrading: boolean;
   telegramBotToken: string;
   telegramChatId: string;
+  slackSigningSecret: string;
   notifications: {
     telegram: {
       enabled: boolean;
@@ -43,6 +44,7 @@ const slackEnabled = telegramEnabled ? false : useSlack;
 const telegramBotToken = getEnv('TELEGRAM_BOT_TOKEN', telegramEnabled ? undefined : '');
 const telegramChatId = getEnv('TELEGRAM_CHAT_ID', telegramEnabled ? undefined : '');
 const slackWebhookUrl = getEnv('SLACK_WEBHOOK_URL', slackEnabled ? undefined : '');
+const slackSigningSecret = getEnv('SLACK_SIGNING_SECRET', '');
 
 export const config: Config = {
   port: parseInt(getEnv('PORT', '3000'), 10),
@@ -54,6 +56,7 @@ export const config: Config = {
   paperTrading: getEnv('PAPER_TRADING', 'true') === 'true',
   telegramBotToken,
   telegramChatId,
+  slackSigningSecret,
   notifications: {
     telegram: {
       enabled: telegramEnabled,
