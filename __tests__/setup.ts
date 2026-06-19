@@ -7,6 +7,8 @@ process.env.CLIENT_TOTP_PIN = 'TESTTOTP';
 process.env.PAPER_TRADING = 'true';
 process.env.TELEGRAM_BOT_TOKEN = 'test_bot';
 process.env.TELEGRAM_CHAT_ID = 'test_chat';
+process.env.USE_TELEGRAM = 'true';
+process.env.USE_SLACK = 'false';
 
 jest.mock('otplib', () => ({
   generate: jest.fn(),

@@ -14,11 +14,11 @@ import { calculateRsi } from './helpers/rsi.js';
 import { login } from './helpers/login.js';
 import { sessionStore } from './store/sessionStore.js';
 
-if (!config.telegramBotToken) {
-  logger.warn('TELEGRAM_BOT_TOKEN not found, bot features will be disabled.');
+if (!config.notifications.telegram.enabled) {
+  logger.info('Telegram notifications/bot are disabled.');
 }
 
-export const bot = new Telegraf(config.telegramBotToken || '');
+export const bot = new Telegraf(config.telegramBotToken || '123456:dummy');
 
 // Middleware to restrict access to the configured Chat ID
 bot.use(async (ctx, next) => {
@@ -183,7 +183,7 @@ bot.on('text', async (ctx) => {
 });
 
 export const startBot = async () => {
-  if (!config.telegramBotToken) return;
+  if (!config.notifications.telegram.enabled || !config.telegramBotToken) return;
 
   bot.launch();
   logger.info('Telegram Bot listener started');

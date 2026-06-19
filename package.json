@@ -9,8 +9,12 @@
     "start": "node dist/src/main.js",
     "dev": "tsx src/main.ts",
     "test": "jest",
+    "test:coverage": "jest --coverage",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\" \"__tests__/**/*.ts\"",
+    "prettier:check": "prettier --check \"src/**/*.ts\" \"__tests__/**/*.ts\"",
+    "verify": "pnpm run prettier:check && pnpm run lint && pnpm run typecheck && pnpm run test:coverage && pnpm run build",
     "prepare": "husky",
     "commit": "cz"
   },
