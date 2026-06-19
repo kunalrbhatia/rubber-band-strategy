@@ -12,6 +12,17 @@ export interface Config {
   paperTrading: boolean;
   telegramBotToken: string;
   telegramChatId: string;
+  notifications: {
+    telegram: {
+      enabled: boolean;
+      token: string;
+      chatId: string;
+    };
+    slack: {
+      enabled: boolean;
+      webhookUrl: string;
+    };
+  };
 }
 
 const getEnv = (key: string, defaultValue?: string): string => {
@@ -22,6 +33,17 @@ const getEnv = (key: string, defaultValue?: string): string => {
   return value || '';
 };
 
+const useTelegram = getEnv('USE_TELEGRAM', 'false') === 'true';
+const useSlack = getEnv('USE_SLACK', 'false') === 'true';
+
+// Priority enforcement: Disable Slack if Telegram is enabled
+const telegramEnabled = useTelegram;
+const slackEnabled = telegramEnabled ? false : useSlack;
+
+const telegramBotToken = getEnv('TELEGRAM_BOT_TOKEN', telegramEnabled ? undefined : '');
+const telegramChatId = getEnv('TELEGRAM_CHAT_ID', telegramEnabled ? undefined : '');
+const slackWebhookUrl = getEnv('SLACK_WEBHOOK_URL', slackEnabled ? undefined : '');
+
 export const config: Config = {
   port: parseInt(getEnv('PORT', '3000'), 10),
   nodeEnv: getEnv('NODE_ENV', 'development'),
@@ -30,6 +52,17 @@ export const config: Config = {
   clientPin: getEnv('CLIENT_PIN'),
   clientTotpPin: getEnv('CLIENT_TOTP_PIN'),
   paperTrading: getEnv('PAPER_TRADING', 'true') === 'true',
-  telegramBotToken: getEnv('TELEGRAM_BOT_TOKEN'),
-  telegramChatId: getEnv('TELEGRAM_CHAT_ID'),
+  telegramBotToken,
+  telegramChatId,
+  notifications: {
+    telegram: {
+      enabled: telegramEnabled,
+      token: telegramBotToken,
+      chatId: telegramChatId,
+    },
+    slack: {
+      enabled: slackEnabled,
+      webhookUrl: slackWebhookUrl,
+    },
+  },
 };

@@ -16,6 +16,17 @@ jest.mock('../src/config/env.js', () => ({
   config: {
     telegramBotToken: 'test_token',
     telegramChatId: 'test_chat',
+    notifications: {
+      telegram: {
+        enabled: true,
+        token: 'test_token',
+        chatId: 'test_chat',
+      },
+      slack: {
+        enabled: false,
+        webhookUrl: '',
+      },
+    },
   },
 }));
 
@@ -110,6 +121,15 @@ describe('Telegram Bot startBot', () => {
     (bot.launch as jest.Mock).mockClear();
     await startBot();
     expect(bot.launch).not.toHaveBeenCalled();
+  });
+
+  it('should not launch if telegram notifications are disabled', async () => {
+    config.notifications.telegram.enabled = false;
+    config.telegramBotToken = 'test_token';
+    (bot.launch as jest.Mock).mockClear();
+    await startBot();
+    expect(bot.launch).not.toHaveBeenCalled();
+    config.notifications.telegram.enabled = true;
   });
 });
 
