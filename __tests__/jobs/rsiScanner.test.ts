@@ -6,6 +6,7 @@ import { calculateRsi } from '../../src/helpers/rsi.js';
 import { findOptionToken } from '../../src/helpers/optionChain.js';
 import { sendNotification } from '../../src/notifier.js';
 import { STRATEGY_CONSTANTS } from '../../src/helpers/constants.js';
+import { config } from '../../src/config/env.js';
 
 jest.mock('../../src/helpers/marketData.js');
 jest.mock('../../src/helpers/rsi.js');
@@ -21,6 +22,7 @@ describe('RSI Scanner Job', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    config.paperTrading = true;
   });
 
   afterEach(() => {
