@@ -27,21 +27,11 @@ class AppStateStore {
         .then(() => true)
         .catch(() => false);
 
-      // For paper trading, respect the .paper file if it exists, otherwise default to env
-      const paperFileExists = await fs
+      this._isPaperTrading = await fs
         .access(PAPER_FILE)
         .then(() => true)
         .catch(() => false);
-      if (paperFileExists) {
-        this._isPaperTrading = true;
-      } else if (config.paperTrading === false) {
-        // If env says live, and no .paper file, it's live
-        this._isPaperTrading = false;
-      } else {
-        // If env says paper, ensure the file exists for consistency
-        this._isPaperTrading = true;
-        await fs.writeFile(PAPER_FILE, '', 'utf-8');
-      }
+      config.paperTrading = this._isPaperTrading;
 
       logger.info(
         `App state initialized: Kill=${this._isKillSwitchActive}, Manual=${this._isManualMode}, Paper=${this._isPaperTrading}`,

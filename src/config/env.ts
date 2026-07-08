@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -53,7 +55,7 @@ export const config: Config = {
   clientCode: getEnv('CLIENT_CODE'),
   clientPin: getEnv('CLIENT_PIN'),
   clientTotpPin: getEnv('CLIENT_TOTP_PIN'),
-  paperTrading: getEnv('PAPER_TRADING', 'true') === 'true',
+  paperTrading: fs.existsSync(path.join(process.cwd(), '.paper')),
   telegramBotToken,
   telegramChatId,
   slackSigningSecret,

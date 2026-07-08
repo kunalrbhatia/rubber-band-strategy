@@ -8,11 +8,17 @@ import { sendNotification } from '../notifier.js';
 
 export let ws: WebSocket | null = null;
 let heartbeatInterval: NodeJS.Timeout | null = null;
+let reconnectTimeout: NodeJS.Timeout | null = null;
 let isConnecting = false;
 
 export const connectWebSocket = async (): Promise<void> => {
   if (ws || isConnecting) return;
   isConnecting = true;
+
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
 
   return new Promise((resolve, reject) => {
     const url = 'wss://smartapisocket.angelone.in/smart-stream';
@@ -74,11 +80,14 @@ export const connectWebSocket = async (): Promise<void> => {
 
     ws.on('close', () => {
       logger.info('WebSocket connection closed');
-      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+      }
       ws = null;
       isConnecting = false;
       // Attempt reconnect if needed and catch any promise rejections
-      setTimeout(() => connectWebSocket().catch(() => {}), 5000);
+      reconnectTimeout = setTimeout(() => connectWebSocket().catch(() => {}), 5000);
     });
   });
 };
@@ -103,6 +112,14 @@ export const subscribe = (sellToken: string, buyToken: string): void => {
 };
 
 export const unsubscribe = (): void => {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
   if (ws) {
     ws.close();
     ws = null;
