@@ -17,6 +17,7 @@ import {
 } from '../helpers/optionChain.js';
 import { connectWebSocket, subscribe, unsubscribe } from '../helpers/slMonitor.js';
 import { tradeStore, ActiveTrade } from '../store/tradeStore.js';
+import { appStateStore } from '../store/appStateStore.js';
 import { paperStore } from '../paper/paperStore.js';
 import { placeSpread, exitSpread } from '../helpers/orders.js';
 import { format } from 'date-fns';
@@ -130,6 +131,13 @@ export async function runDiagnostics(customLogger?: any) {
     if (isLive) {
       l.info('!!! LIVE MODE DETECTED !!!');
       config.paperTrading = false;
+    } else if (
+      process.argv[1] &&
+      process.argv[1] !== path.join(process.cwd(), 'src', 'scripts', 'market-diagnostics.ts')
+    ) {
+      // Called from cron job — respect existing app state, don't override
+      config.paperTrading = appStateStore.isPaperTrading;
+      l.info(`Running in ${config.paperTrading ? 'PAPER' : 'LIVE'} mode (from app state).`);
     } else {
       l.info('Running in PAPER mode (default). Use --live for real trades.');
       config.paperTrading = true;
