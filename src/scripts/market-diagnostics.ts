@@ -125,99 +125,105 @@ export async function runDiagnostics(customLogger?: any) {
     const buyLtp = await getLtp(buyLeg.symbolToken, 'NFO');
     l.info(`LTP - Sell Leg: ₹${sellLtp}, Buy Leg: ₹${buyLtp}`);
 
-    // 5. Order Placement (Paper/Live)
-    l.info('--- 5. Testing Order Placement ---');
-    const isLive = process.argv.includes('--live');
-    if (isLive) {
-      l.info('!!! LIVE MODE DETECTED !!!');
-      config.paperTrading = false;
-    } else if (
+    const isStandalone = !!(
       process.argv[1] &&
-      process.argv[1] !== path.join(process.cwd(), 'src', 'scripts', 'market-diagnostics.ts')
-    ) {
-      // Called from cron job — respect existing app state, don't override
-      config.paperTrading = appStateStore.isPaperTrading;
-      l.info(`Running in ${config.paperTrading ? 'PAPER' : 'LIVE'} mode (from app state).`);
-    } else {
-      l.info('Running in PAPER mode (default). Use --live for real trades.');
-      config.paperTrading = true;
-      await paperStore.init();
-    }
+      (process.argv[1].endsWith('market-diagnostics.ts') ||
+        process.argv[1].endsWith('market-diagnostics.js'))
+    );
 
-    const tradeId = uuidv4();
-    const trade: ActiveTrade = {
-      id: tradeId,
-      entryTime: new Date().toISOString(),
-      underlying: 'NIFTY',
-      optionType,
-      expiry,
-      lotSize: sellLeg.lotSize,
-      quantity: sellLeg.lotSize,
-      sellLeg: {
-        tradingSymbol: sellLeg.tradingSymbol,
-        symbolToken: sellLeg.symbolToken,
-        action: 'SELL',
-        strike: sellStrike,
-        entryPremium: sellLtp,
-        currentPremium: sellLtp,
-      },
-      buyLeg: {
-        tradingSymbol: buyLeg.tradingSymbol,
-        symbolToken: buyLeg.symbolToken,
-        action: 'BUY',
-        strike: hedgeStrike,
-        entryPremium: buyLtp,
-        currentPremium: buyLtp,
-      },
-      netCreditAtEntry: sellLtp - buyLtp,
-      usedMargin: STRATEGY_CONSTANTS.PAPER_MARGIN_ESTIMATE, // Mock or real margin
-      targetPnl: 1000, // Tight target for testing
-      slPnl: -500, // Tight SL for testing
-      rsiAtEntry: rsi || 0,
-      mode: config.paperTrading ? 'PAPER' : 'LIVE',
-    };
-
-    tradeStore.setActiveTrade(trade);
-    await placeSpread(trade);
-    l.info(`SUCCESS: Order placed (${trade.mode}).`);
-
-    // 6. Stop Loss Monitoring
-    l.info('--- 6. Testing Stop Loss Monitoring ---');
-    l.info('Connecting WebSocket and monitoring for 20 seconds...');
-    await connectWebSocket();
-    subscribe(trade.sellLeg.symbolToken, trade.buyLeg.symbolToken);
-
-    // Monitor for a bit
-    for (let i = 0; i < 4; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      const activeTrade = tradeStore.activeTrade;
-      if (activeTrade) {
-        const currentNetCredit =
-          activeTrade.sellLeg.currentPremium - activeTrade.buyLeg.currentPremium;
-        const mtm = (activeTrade.netCreditAtEntry - currentNetCredit) * activeTrade.lotSize;
-        l.info(
-          `Update ${i + 1}: MTM: ₹${mtm.toFixed(2)} (Sell LTP: ${activeTrade.sellLeg.currentPremium}, Buy LTP: ${activeTrade.buyLeg.currentPremium})`,
-        );
-
-        // Artificial SL trigger for testing if market is closed
-        if (i === 2 && !isLive) {
-          l.info('Simulating SL hit for diagnostic purposes...');
-          tradeStore.activeTrade!.sellLeg.currentPremium += 20; // Increase sell premium to cause loss
-        }
+    if (isStandalone) {
+      // 5. Order Placement (Paper/Live)
+      l.info('--- 5. Testing Order Placement ---');
+      const isLive = process.argv.includes('--live');
+      if (isLive) {
+        l.info('!!! LIVE MODE DETECTED !!!');
+        config.paperTrading = false;
       } else {
-        l.info('Trade closed by Monitor (Target/SL reached).');
-        break;
+        l.info('Running in PAPER mode (default). Use --live for real trades.');
+        config.paperTrading = true;
+        await paperStore.init();
       }
-    }
 
-    // Cleanup
-    if (tradeStore.activeTrade) {
-      l.info('Manually exiting trade...');
-      await exitSpread(tradeStore.activeTrade, 'EOD');
-      tradeStore.clearActiveTrade();
-    }
+      const tradeId = uuidv4();
+      const trade: ActiveTrade = {
+        id: tradeId,
+        entryTime: new Date().toISOString(),
+        underlying: 'NIFTY',
+        optionType,
+        expiry,
+        lotSize: sellLeg.lotSize,
+        quantity: sellLeg.lotSize,
+        sellLeg: {
+          tradingSymbol: sellLeg.tradingSymbol,
+          symbolToken: sellLeg.symbolToken,
+          action: 'SELL',
+          strike: sellStrike,
+          entryPremium: sellLtp,
+          currentPremium: sellLtp,
+        },
+        buyLeg: {
+          tradingSymbol: buyLeg.tradingSymbol,
+          symbolToken: buyLeg.symbolToken,
+          action: 'BUY',
+          strike: hedgeStrike,
+          entryPremium: buyLtp,
+          currentPremium: buyLtp,
+        },
+        netCreditAtEntry: sellLtp - buyLtp,
+        usedMargin: STRATEGY_CONSTANTS.PAPER_MARGIN_ESTIMATE, // Mock or real margin
+        targetPnl: 1000, // Tight target for testing
+        slPnl: -500, // Tight SL for testing
+        rsiAtEntry: rsi || 0,
+        mode: config.paperTrading ? 'PAPER' : 'LIVE',
+      };
 
-    unsubscribe();
+      tradeStore.setActiveTrade(trade);
+      await placeSpread(trade);
+      l.info(`SUCCESS: Order placed (${trade.mode}).`);
+
+      // 6. Stop Loss Monitoring
+      l.info('--- 6. Testing Stop Loss Monitoring ---');
+      l.info('Connecting WebSocket and monitoring for 20 seconds...');
+      await connectWebSocket();
+      subscribe(trade.sellLeg.symbolToken, trade.buyLeg.symbolToken);
+
+      // Monitor for a bit
+      for (let i = 0; i < 4; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        const activeTrade = tradeStore.activeTrade;
+        if (activeTrade) {
+          const currentNetCredit =
+            activeTrade.sellLeg.currentPremium - activeTrade.buyLeg.currentPremium;
+          const mtm = (activeTrade.netCreditAtEntry - currentNetCredit) * activeTrade.lotSize;
+          l.info(
+            `Update ${i + 1}: MTM: ₹${mtm.toFixed(2)} (Sell LTP: ${activeTrade.sellLeg.currentPremium}, Buy LTP: ${activeTrade.buyLeg.currentPremium})`,
+          );
+
+          // Artificial SL trigger for testing if market is closed
+          if (i === 2 && !isLive) {
+            l.info('Simulating SL hit for diagnostic purposes...');
+            tradeStore.activeTrade!.sellLeg.currentPremium += 20; // Increase sell premium to cause loss
+          }
+        } else {
+          l.info('Trade closed by Monitor (Target/SL reached).');
+          break;
+        }
+      }
+
+      // Cleanup
+      if (tradeStore.activeTrade) {
+        l.info('Manually exiting trade...');
+        await exitSpread(tradeStore.activeTrade, 'EOD');
+        tradeStore.clearActiveTrade();
+      }
+
+      unsubscribe();
+    } else {
+      l.info('--- Skipping Order Placement & SL Monitoring ---');
+      l.info(
+        'Diagnostics is running as an integrated health check. Skipping steps 5 & 6 to prevent placing orders or modifying global trading mode settings.',
+      );
+    }
     l.info('=== MARKET DIAGNOSTICS COMPLETED ===');
   } catch (error: any) {
     l.error(`DIAGNOSTICS FAILED: ${error.message}`);
